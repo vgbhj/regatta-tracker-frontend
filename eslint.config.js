@@ -91,5 +91,14 @@ export default defineConfig([
     },
   },
 
+  // Typed Redux hooks in shared/ need RootState/AppDispatch from app/store —
+  // the only sanctioned FSD cross-layer exception in this project.
+  {
+    files: ['src/shared/lib/redux-hooks.ts'],
+    rules: {
+      'import/no-restricted-paths': 'off',
+    },
+  },
+
   prettierConfig,
 ])
