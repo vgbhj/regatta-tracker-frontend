@@ -1,11 +1,9 @@
-import type { TrackPoint } from '@/shared/types';
-
 /**
  * Бинарный поиск индекса последней точки с tMs ≤ targetMs.
  * O(log n) — вызывается каждый кадр вместо пересчёта Hermite-интерполяции.
  */
 export function findIndexAtTime(
-  points: TrackPoint[],
+  points: ReadonlyArray<{ tMs: number }>,
   targetMs: number,
 ): number {
   if (points.length === 0) return -1;

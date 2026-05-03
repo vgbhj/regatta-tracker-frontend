@@ -12,6 +12,11 @@ export const ru = {
     noRaces: 'Нет доступных гонок',
     serverUnavailable: 'Сервер недоступен',
   },
+  viewSwitcher: {
+    '2d': 'Карта',
+    '3d': '3D',
+    split: 'Оба',
+  },
   timeline: {
     play: 'Воспроизвести',
     pause: 'Пауза',

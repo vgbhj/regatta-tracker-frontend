@@ -5,6 +5,7 @@ import { yachtReducer } from '@/entities/yacht';
 import { trackReducer } from '@/entities/track';
 import { markReducer } from '@/entities/mark';
 import { playbackReducer, precomputedTracksReducer } from '@/features/playback';
+import { viewSwitcherReducer } from '@/features/view-switcher';
 import { apiSlice } from '@/shared/api/api-slice';
 
 export const store = configureStore({
@@ -15,6 +16,7 @@ export const store = configureStore({
     mark: markReducer,
     playback: playbackReducer,
     precomputedTracks: precomputedTracksReducer,
+    viewSwitcher: viewSwitcherReducer,
     [apiSlice.reducerPath]: apiSlice.reducer,
   },
   middleware: (getDefaultMiddleware) =>

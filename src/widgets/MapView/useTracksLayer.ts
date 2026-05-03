@@ -5,7 +5,7 @@ import { yachtSelectors } from '@/entities/yacht';
 import { selectAllPrecomputedTracks, selectCurrentTime } from '@/features/playback';
 import { useAppSelector } from '@/shared/lib/redux-hooks';
 
-import { findIndexAtTime } from './binarySearchTrack';
+import { findIndexAtTime } from '@/shared/lib/binarySearchTrack';
 
 export function useTracksLayer(map: L.Map | null): void {
   const currentTime = useAppSelector(selectCurrentTime);

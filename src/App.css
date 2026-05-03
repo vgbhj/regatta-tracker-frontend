@@ -6,3 +6,17 @@
   gap: 12px;
   box-sizing: border-box;
 }
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-shrink: 0;
+}
+
+.views {
+  display: flex;
+  flex: 1;
+  gap: 12px;
+  min-height: 0;
+}
