@@ -12,4 +12,10 @@ export const ru = {
     noRaces: 'Нет доступных гонок',
     serverUnavailable: 'Сервер недоступен',
   },
+  timeline: {
+    play: 'Воспроизвести',
+    pause: 'Пауза',
+    restart: 'Сначала',
+    speed: 'Скорость',
+  },
 } as const;

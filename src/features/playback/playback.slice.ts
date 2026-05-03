@@ -90,3 +90,8 @@ export const selectPlaybackSpeed = createSelector(
   selectPlayback,
   (pb) => pb.speed,
 );
+
+export const selectRaceDuration = createSelector(
+  selectPlayback,
+  (pb) => pb.raceDurationMs,
+);
