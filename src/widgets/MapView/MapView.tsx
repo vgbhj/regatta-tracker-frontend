@@ -22,7 +22,10 @@ export function MapView() {
 
   useEffect(() => {
     if (!containerRef.current) return;
-    const m = L.map(containerRef.current).setView([55.75, 37.62], 13);
+    const m = L.map(containerRef.current, {
+      attributionControl: false,
+    }).setView([55.75, 37.62], 13);
+    L.control.attribution({ prefix: 'Leaflet' }).addTo(m);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; OpenStreetMap contributors',
     }).addTo(m);
