@@ -8,6 +8,7 @@ import { useAppDispatch } from '@/shared/lib/redux-hooks';
 import { raceUpsertOne } from '@/entities/race';
 import { yachtUpsertOne } from '@/entities/yacht';
 import { trackUpsertOne } from '@/entities/track';
+import { preparePlaybackTracks } from '@/features/playback';
 
 import type { LoadStatus } from './useLoadRaceFromFile';
 
@@ -59,6 +60,7 @@ export function useLoadRaceFromServer() {
           dispatch(trackUpsertOne(track));
         }
 
+        dispatch(preparePlaybackTracks());
         setStatus('success');
       } catch (e) {
         setError(e instanceof Error ? e.message : String(e));
