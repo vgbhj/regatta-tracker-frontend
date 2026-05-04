@@ -93,7 +93,7 @@ export function Scene3DView() {
     [yachts],
   );
 
-  const farPlane = bounds ? bounds.diagonal * 5 : 5000;
+  const farPlane = bounds ? bounds.diagonal * 50 : 50000;
 
   return (
     <div className={styles.canvas}>
@@ -101,7 +101,7 @@ export function Scene3DView() {
         camera={{
           position: cameraPosition,
           fov: 60,
-          near: 1,
+          near: 0.1,
           far: farPlane,
         }}
       >

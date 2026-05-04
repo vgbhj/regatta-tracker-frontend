@@ -91,6 +91,15 @@ export default defineConfig([
     },
   },
 
+  // react-three-fiber uses custom JSX properties (position, rotation-x, args, etc.)
+  // that trigger false positives in react/no-unknown-property.
+  {
+    files: ['src/widgets/Scene3DView/**/*.{ts,tsx}'],
+    rules: {
+      'react/no-unknown-property': 'off',
+    },
+  },
+
   // Typed Redux hooks in shared/ need RootState/AppDispatch from app/store —
   // the only sanctioned FSD cross-layer exception in this project.
   {

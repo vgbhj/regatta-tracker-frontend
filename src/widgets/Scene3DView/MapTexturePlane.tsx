@@ -7,6 +7,7 @@ import type { SceneBounds } from './SceneBounds';
 const TILE_SIZE = 256;
 const MAX_TILES = 64;
 const SUBDOMAINS = ['a', 'b', 'c'];
+const GRID = 128;
 
 function lonToTileX(lon: number, z: number): number {
   return Math.floor(((lon + 180) / 360) * (1 << z));
@@ -44,11 +45,69 @@ function findZoom(
   return 1;
 }
 
-interface PlaneExtent {
+function isWaterPixel(r: number, g: number, b: number): boolean {
+  return b > 170 && b > r + 15 && g > 140;
+}
+
+function blurHeightmap(
+  src: Float32Array,
+  w: number,
+  h: number,
+  radius: number,
+): Float32Array {
+  const dst = new Float32Array(w * h);
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      let sum = 0;
+      let count = 0;
+      for (let dy = -radius; dy <= radius; dy++) {
+        for (let dx = -radius; dx <= radius; dx++) {
+          const nx = x + dx;
+          const ny = y + dy;
+          if (nx >= 0 && nx < w && ny >= 0 && ny < h) {
+            sum += src[ny * w + nx];
+            count++;
+          }
+        }
+      }
+      dst[y * w + x] = sum / count;
+    }
+  }
+  return dst;
+}
+
+function buildHeightmap(
+  canvas: HTMLCanvasElement,
+  landHeight: number,
+): Float32Array {
+  const ctx = canvas.getContext('2d')!;
+  const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const pixels = imgData.data;
+  const raw = new Float32Array(GRID * GRID);
+
+  for (let gy = 0; gy < GRID; gy++) {
+    for (let gx = 0; gx < GRID; gx++) {
+      const px = Math.floor((gx / (GRID - 1)) * (canvas.width - 1));
+      const py = Math.floor((gy / (GRID - 1)) * (canvas.height - 1));
+      const idx = (py * canvas.width + px) * 4;
+      raw[gy * GRID + gx] = isWaterPixel(
+        pixels[idx],
+        pixels[idx + 1],
+        pixels[idx + 2],
+      )
+        ? 0
+        : landHeight;
+    }
+  }
+
+  return blurHeightmap(blurHeightmap(raw, GRID, GRID, 2), GRID, GRID, 2);
+}
+
+interface PlaneData {
+  texture: THREE.CanvasTexture;
+  geometry: THREE.PlaneGeometry;
   cx: number;
   cz: number;
-  width: number;
-  depth: number;
 }
 
 interface MapTexturePlaneProps {
@@ -57,14 +116,14 @@ interface MapTexturePlaneProps {
 }
 
 export function MapTexturePlane({ projection, bounds }: MapTexturePlaneProps) {
-  const [texture, setTexture] = useState<THREE.CanvasTexture | null>(null);
-  const [extent, setExtent] = useState<PlaneExtent | null>(null);
+  const [data, setData] = useState<PlaneData | null>(null);
 
   useEffect(() => {
+    let disposed = false;
+
     const halfX = bounds.sizeX / 2;
     const halfZ = bounds.sizeZ / 2;
 
-    // scene z = -local.y → local.y = -z
     const sw = projection.toGeo({
       x: bounds.centerX - halfX,
       y: -(bounds.centerZ + halfZ),
@@ -101,19 +160,37 @@ export function MapTexturePlane({ projection, bounds }: MapTexturePlaneProps) {
     const planeD = gridSW.y - gridNE.y;
     const cx = (gridSW.x + gridNE.x) / 2;
     const cz = -(gridSW.y + gridNE.y) / 2;
+    const landHeight = bounds.diagonal * 0.008;
 
     let loaded = 0;
     const total = tilesW * tilesH;
 
     const onTileReady = () => {
       loaded++;
-      if (loaded < total) return;
+      if (loaded < total || disposed) return;
+
+      const heightmap = buildHeightmap(canvas, landHeight);
+
+      const geo = new THREE.PlaneGeometry(
+        planeW,
+        planeD,
+        GRID - 1,
+        GRID - 1,
+      );
+      const pos = geo.attributes.position.array as Float32Array;
+      for (let i = 0; i < GRID * GRID; i++) {
+        pos[i * 3 + 2] = heightmap[i];
+      }
+      geo.attributes.position.needsUpdate = true;
+      geo.computeVertexNormals();
+
       const tex = new THREE.CanvasTexture(canvas);
       tex.minFilter = THREE.LinearFilter;
       tex.magFilter = THREE.LinearFilter;
       tex.colorSpace = THREE.SRGBColorSpace;
-      setTexture(tex);
-      setExtent({ cx, cz, width: planeW, depth: planeD });
+      tex.flipY = false;
+
+      setData({ texture: tex, geometry: geo, cx, cz });
     };
 
     for (let ty = tyMin; ty <= tyMax; ty++) {
@@ -138,17 +215,24 @@ export function MapTexturePlane({ projection, bounds }: MapTexturePlaneProps) {
     }
 
     return () => {
-      texture?.dispose();
+      disposed = true;
+      data?.texture.dispose();
+      data?.geometry.dispose();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projection, bounds]);
 
-  if (!texture || !extent) return null;
+  if (!data) return null;
 
   return (
-    <mesh rotation-x={-Math.PI / 2} position={[extent.cx, -1.5, extent.cz]}>
-      <planeGeometry args={[extent.width, extent.depth]} />
-      <meshBasicMaterial map={texture} />
+    <mesh rotation-x={-Math.PI / 2} position={[data.cx, -0.1, data.cz]}>
+      <primitive object={data.geometry} attach="geometry" />
+      <meshStandardMaterial
+        map={data.texture}
+        roughness={0.9}
+        metalness={0}
+        side={THREE.DoubleSide}
+      />
     </mesh>
   );
 }
