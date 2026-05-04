@@ -1,35 +1,42 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useState } from 'react'
 
-import type { Race, Yacht, Track } from '@/shared/types';
-import { raceId, yachtId } from '@/shared/types';
-import { parseGpx } from '@/shared/gpx-parser';
-import { useAppDispatch } from '@/shared/lib/redux-hooks';
-import { raceUpsertOne } from '@/entities/race';
-import { yachtUpsertOne } from '@/entities/yacht';
-import { trackUpsertOne } from '@/entities/track';
-import { preparePlaybackTracks } from '@/features/playback';
+import type { Race, Yacht, Track } from '@/shared/types'
+import { raceId, yachtId } from '@/shared/types'
+import { parseGpx } from '@/shared/gpx-parser'
+import { useAppDispatch } from '@/shared/lib/redux-hooks'
+import { raceUpsertOne } from '@/entities/race'
+import { yachtUpsertOne } from '@/entities/yacht'
+import { trackUpsertOne } from '@/entities/track'
+import { markSetAll } from '@/entities/mark'
+import { preparePlaybackTracks } from '@/features/playback'
 
 const YACHT_COLORS = [
-  '#e63946', '#457b9d', '#2a9d8f', '#e9c46a',
-  '#f4a261', '#264653', '#6a4c93', '#1982c4',
-];
+  '#e63946',
+  '#457b9d',
+  '#2a9d8f',
+  '#e9c46a',
+  '#f4a261',
+  '#264653',
+  '#6a4c93',
+  '#1982c4',
+]
 
-export type LoadStatus = 'idle' | 'loading' | 'success' | 'error';
+export type LoadStatus = 'idle' | 'loading' | 'success' | 'error'
 
 export function useLoadRaceFromFile() {
-  const dispatch = useAppDispatch();
-  const [status, setStatus] = useState<LoadStatus>('idle');
-  const [error, setError] = useState<string | null>(null);
+  const dispatch = useAppDispatch()
+  const [status, setStatus] = useState<LoadStatus>('idle')
+  const [error, setError] = useState<string | null>(null)
 
   const loadFile = useCallback(
     async (file: File) => {
-      setStatus('loading');
-      setError(null);
+      setStatus('loading')
+      setError(null)
       try {
-        const text = await file.text();
-        const result = parseGpx(text);
+        const text = await file.text()
+        const result = parseGpx(text)
 
-        const rId = raceId(crypto.randomUUID());
+        const rId = raceId(crypto.randomUUID())
 
         const yachts: Yacht[] = result.tracks.map((t, i) => ({
           id: yachtId(crypto.randomUUID()),
@@ -37,7 +44,7 @@ export function useLoadRaceFromFile() {
           sailNumber: '',
           className: '',
           color: YACHT_COLORS[i % YACHT_COLORS.length],
-        }));
+        }))
 
         const race: Race = {
           id: rId,
@@ -46,29 +53,30 @@ export function useLoadRaceFromFile() {
           durationMs: result.raceDurationMs,
           yachts: yachts.map((y) => y.id),
           marks: [],
-        };
+        }
 
-        dispatch(raceUpsertOne(race));
-        for (const y of yachts) dispatch(yachtUpsertOne(y));
+        dispatch(raceUpsertOne(race))
+        dispatch(markSetAll(race.marks))
+        for (const y of yachts) dispatch(yachtUpsertOne(y))
 
         for (let i = 0; i < result.tracks.length; i++) {
           const track: Track = {
             raceId: rId,
             yachtId: yachts[i].id,
             points: result.tracks[i].points,
-          };
-          dispatch(trackUpsertOne(track));
+          }
+          dispatch(trackUpsertOne(track))
         }
 
-        dispatch(preparePlaybackTracks());
-        setStatus('success');
+        dispatch(preparePlaybackTracks())
+        setStatus('success')
       } catch (e) {
-        setError(e instanceof Error ? e.message : String(e));
-        setStatus('error');
+        setError(e instanceof Error ? e.message : String(e))
+        setStatus('error')
       }
     },
     [dispatch],
-  );
+  )
 
-  return { loadFile, status, error } as const;
+  return { loadFile, status, error } as const
 }
