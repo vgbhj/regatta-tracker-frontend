@@ -1,51 +1,68 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react'
 
-import { ru } from '@/shared/i18n/ru';
-import { useGetRacesQuery } from '@/shared/api/api-slice';
+import { ru } from '@/shared/i18n/ru'
+import { useGetRacesQuery } from '@/shared/api/api-slice'
 
-import { useLoadRaceFromFile } from './useLoadRaceFromFile';
-import { useLoadRaceFromServer } from './useLoadRaceFromServer';
-import styles from './RaceLoader.module.css';
+import { useLoadRaceFromFile } from './useLoadRaceFromFile'
+import { useLoadRaceFromServer } from './useLoadRaceFromServer'
+import styles from './RaceLoader.module.css'
 
-import type { LoadStatus } from './useLoadRaceFromFile';
+import type { LoadStatus } from './useLoadRaceFromFile'
 
-type Mode = 'server' | 'file';
+type Mode = 'server' | 'file'
 
-const t = ru.raceLoader;
+const t = ru.raceLoader
+const defaultMode: Mode = import.meta.env.VITE_DEFAULT_RACE_SOURCE === 'server' ? 'server' : 'file'
+const demoAutoloadRace = import.meta.env.VITE_DEMO_AUTOLOAD_RACE === 'true'
 
 function StatusMessage({ status, error }: { status: LoadStatus; error: string | null }) {
-  if (status === 'idle') return null;
+  if (status === 'idle') return null
   if (status === 'loading')
-    return <p className={`${styles.status} ${styles.statusLoading}`}>{t.statusLoading}</p>;
+    return <p className={`${styles.status} ${styles.statusLoading}`}>{t.statusLoading}</p>
   if (status === 'success')
-    return <p className={`${styles.status} ${styles.statusSuccess}`}>{t.statusSuccess}</p>;
+    return <p className={`${styles.status} ${styles.statusSuccess}`}>{t.statusSuccess}</p>
   return (
     <p className={`${styles.status} ${styles.statusError}`}>
       {t.statusError}
       {error}
     </p>
-  );
+  )
 }
 
 export function RaceLoader() {
-  const [mode, setMode] = useState<Mode>('file');
-  const [selectedRaceId, setSelectedRaceId] = useState('');
-  const fileRef = useRef<HTMLInputElement>(null);
+  const [mode, setMode] = useState<Mode>(defaultMode)
+  const [selectedRaceId, setSelectedRaceId] = useState('')
+  const fileRef = useRef<HTMLInputElement>(null)
 
-  const { data: races, isLoading: racesLoading, isError: racesError } = useGetRacesQuery();
-  const fromFile = useLoadRaceFromFile();
-  const fromServer = useLoadRaceFromServer();
+  const { data: races, isLoading: racesLoading, isError: racesError } = useGetRacesQuery()
+  const fromFile = useLoadRaceFromFile()
+  const { loadRace, status: serverStatus, error: serverError } = useLoadRaceFromServer()
+  const effectiveSelectedRaceId =
+    selectedRaceId || (demoAutoloadRace && mode === 'server' ? (races?.[0]?.id ?? '') : '')
 
-  const busy = fromFile.status === 'loading' || fromServer.status === 'loading';
+  const busy = fromFile.status === 'loading' || serverStatus === 'loading'
 
   const handleLoadServer = () => {
-    if (selectedRaceId) fromServer.loadRace(selectedRaceId);
-  };
+    if (effectiveSelectedRaceId) loadRace(effectiveSelectedRaceId)
+  }
 
   const handleFileChange = () => {
-    const file = fileRef.current?.files?.[0];
-    if (file) fromFile.loadFile(file);
-  };
+    const file = fileRef.current?.files?.[0]
+    if (file) fromFile.loadFile(file)
+  }
+
+  useEffect(() => {
+    if (
+      !demoAutoloadRace ||
+      mode !== 'server' ||
+      !effectiveSelectedRaceId ||
+      serverStatus !== 'idle'
+    ) {
+      return
+    }
+
+    loadRace(effectiveSelectedRaceId)
+  }, [effectiveSelectedRaceId, loadRace, mode, serverStatus])
 
   return (
     <section className={styles.root}>
@@ -75,14 +92,12 @@ export function RaceLoader() {
             {racesError && (
               <p className={`${styles.status} ${styles.statusError}`}>{t.serverUnavailable}</p>
             )}
-            {races && races.length === 0 && (
-              <p className={styles.status}>{t.noRaces}</p>
-            )}
+            {races && races.length === 0 && <p className={styles.status}>{t.noRaces}</p>}
             {races && races.length > 0 && (
               <>
                 <select
                   className={styles.select}
-                  value={selectedRaceId}
+                  value={effectiveSelectedRaceId}
                   onChange={(e) => setSelectedRaceId(e.target.value)}
                 >
                   <option value="">{t.selectRace}</option>
@@ -94,14 +109,14 @@ export function RaceLoader() {
                 </select>
                 <button
                   className={styles.button}
-                  disabled={!selectedRaceId || busy}
+                  disabled={!effectiveSelectedRaceId || busy}
                   onClick={handleLoadServer}
                 >
                   {t.load}
                 </button>
               </>
             )}
-            <StatusMessage status={fromServer.status} error={fromServer.error} />
+            <StatusMessage status={serverStatus} error={serverError} />
           </>
         )}
 
@@ -120,5 +135,5 @@ export function RaceLoader() {
         )}
       </div>
     </section>
-  );
+  )
 }
