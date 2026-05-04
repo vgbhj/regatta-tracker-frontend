@@ -1,73 +1,45 @@
-# React + TypeScript + Vite
+# RegattaTracker — веб-клиент
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Веб-приложение для воспроизведения и анализа парусных регат. Часть системы RegattaTracker, разработанной в рамках ВКР на кафедре 806 МАИ.
 
-Currently, two official plugins are available:
+Мобильные клиенты (участники и судьи) записывают GPS-треки и отправляют их на сервер. Этот веб-клиент визуализирует данные: 2D-карта на Leaflet, 3D-сцена на Three.js, временная шкала, графики метрик.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Стек
 
-## React Compiler
+- TypeScript, React, Vite
+- Redux Toolkit + RTK Query
+- Leaflet (2D-карта)
+- Three.js + React Three Fiber (3D-сцена)
+- Recharts (графики)
+- Vitest (тесты)
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Запуск
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Основные команды
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+| Команда            | Описание                  |
+|--------------------|---------------------------|
+| `npm run dev`      | Dev-сервер на :5173       |
+| `npm run build`    | Сборка в `dist/`          |
+| `npm run preview`  | Просмотр production-сборки|
+| `npm test`         | Запуск тестов             |
+| `npm run lint`     | Линтинг                   |
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Структура проекта
+
+Архитектура — Feature-Sliced Design:
+
+```
+src/
+  app/        — точка входа, провайдеры, роутинг
+  pages/      — страницы
+  widgets/    — составные UI-блоки (MapView, Scene3DView, Timeline)
+  features/   — пользовательские сценарии (загрузка гонки, плеер)
+  entities/   — доменные сущности (race, yacht, track, mark)
+  shared/     — утилиты, UI-кит, API-клиент, интерполяция
 ```
