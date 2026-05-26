@@ -1,11 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<gpx version="1.1" creator="RegattaTracker"
- xmlns="http://www.topografix.com/GPX/1/1">
-<metadata>
-  <name>Ottawa Sailing 2016-08-24</name>
-</metadata>
-<trk>
-    <name>Yacht 1</name>
+<gpx version="1.0" creator="GPSBabel - http://www.gpsbabel.org" xmlns="http://www.topografix.com/GPX/1/0">
+  <time>2016-08-25T03:57:29.298Z</time>
+  <bounds minlat="45.351796690" minlon="-75.860322872" maxlat="45.381118851" maxlon="-75.812442927"/>
+  <trk>
+    <name>0</name>
     <trkseg>
       <trkpt lat="45.353105525" lon="-75.823987490">
         <ele>63.103638</ele>

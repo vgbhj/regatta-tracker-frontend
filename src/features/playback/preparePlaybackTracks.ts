@@ -18,6 +18,7 @@ import type { AppDispatch, RootState } from '@/app/store';
 import { trackSelectors } from '@/entities/track';
 import { LocalProjection } from '@/shared/geo';
 import { interpolateTrack } from '@/shared/interpolation';
+import type { RaceId } from '@/shared/types';
 
 import { initPlayback } from './playback.slice';
 import {
@@ -27,10 +28,12 @@ import {
 
 const TARGET_HZ = 30;
 
-export function preparePlaybackTracks() {
+export function preparePlaybackTracks(raceId: RaceId) {
   return (dispatch: AppDispatch, getState: () => RootState) => {
     const state = getState();
-    const tracks = trackSelectors.selectAll(state.track);
+    const tracks = trackSelectors
+      .selectAll(state.track)
+      .filter((t) => t.raceId === raceId);
 
     if (tracks.length === 0) return;
 

@@ -3,14 +3,14 @@ import type { PayloadAction } from '@reduxjs/toolkit';
 
 import type { RootState } from '@/app/store';
 
-export type ViewMode = '2d' | '3d' | 'split';
+export type ViewMode = '2d' | '3d';
 
 interface ViewSwitcherState {
   view: ViewMode;
 }
 
 const initialState: ViewSwitcherState = {
-  view: 'split',
+  view: '2d',
 };
 
 const viewSwitcherSlice = createSlice({

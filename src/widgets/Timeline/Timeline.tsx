@@ -12,13 +12,13 @@ import {
   selectPlaybackSpeed,
   selectRaceDuration,
 } from '@/features/playback';
-import type { PlaybackSpeed } from '@/features/playback';
 import { ru } from '@/shared/i18n/ru';
 import { useAppDispatch, useAppSelector } from '@/shared/lib/redux-hooks';
 
 import styles from './Timeline.module.css';
 
-const SPEEDS: PlaybackSpeed[] = [1, 2, 5, 10, 30];
+const SPEED_MIN = 0;
+const SPEED_MAX = 100;
 
 function formatTime(ms: number): string {
   const totalSeconds = Math.floor(ms / 1000);
@@ -72,8 +72,8 @@ export function Timeline() {
   }, []);
 
   const onSpeedChange = useCallback(
-    (e: ChangeEvent<HTMLSelectElement>) => {
-      dispatch(setSpeed(Number(e.target.value) as PlaybackSpeed));
+    (e: ChangeEvent<HTMLInputElement>) => {
+      dispatch(setSpeed(Number(e.target.value)));
     },
     [dispatch],
   );
@@ -139,19 +139,20 @@ export function Timeline() {
         {formatTime(currentTime)} / {formatTime(duration)}
       </span>
 
-      <select
-        className={styles.speed}
-        value={speed}
-        onChange={onSpeedChange}
-        title={t.speed}
-        aria-label={t.speed}
-      >
-        {SPEEDS.map((s) => (
-          <option key={s} value={s}>
-            ×{s}
-          </option>
-        ))}
-      </select>
+      <div className={styles.speedControl}>
+        <input
+          type="range"
+          className={styles.speedSlider}
+          min={SPEED_MIN}
+          max={SPEED_MAX}
+          step={1}
+          value={speed}
+          onChange={onSpeedChange}
+          title={t.speed}
+          aria-label={t.speed}
+        />
+        <span className={styles.speedLabel}>×{speed}</span>
+      </div>
     </div>
   );
 }

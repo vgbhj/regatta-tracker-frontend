@@ -30,7 +30,6 @@ export const ru = {
   viewSwitcher: {
     '2d': 'Карта',
     '3d': '3D',
-    split: 'Оба',
   },
   timeline: {
     play: 'Воспроизвести',
@@ -42,6 +41,7 @@ export const ru = {
     tabTimeline: 'Таймлайн',
     tabMetrics: 'Метрики',
     loadingRace: 'Загрузка гонки…',
+    preparingPlayback: 'Подготовка воспроизведения…',
     raceNotFound: 'Гонка не найдена',
   },
   metricsPanel: {

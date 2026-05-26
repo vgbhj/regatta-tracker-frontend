@@ -5,7 +5,7 @@ import styles from './ViewSwitcher.module.css';
 import { selectView, setView } from './view-switcher.slice';
 import type { ViewMode } from './view-switcher.slice';
 
-const MODES: ViewMode[] = ['2d', '3d', 'split'];
+const MODES: ViewMode[] = ['2d', '3d'];
 
 export function ViewSwitcher() {
   const dispatch = useAppDispatch();

@@ -99,28 +99,53 @@
   text-align: center;
 }
 
-/* ── Speed selector ── */
+/* ── Speed slider ── */
 
-.speed {
-  background: transparent;
+.speedControl {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.speedSlider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 90px;
+  height: 4px;
+  background: var(--bg-3);
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+}
+
+.speedSlider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid var(--blue);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+}
+
+.speedSlider::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid var(--blue);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+}
+
+.speedLabel {
   color: var(--text-2);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 5px 10px;
   font-size: 11px;
   font-family: var(--mono);
   font-weight: 600;
-  cursor: pointer;
-  flex-shrink: 0;
-  transition: border-color 0.15s, color 0.15s;
-}
-
-.speed:hover {
-  border-color: var(--border-strong);
-  color: var(--text-0);
-}
-
-.speed:focus-visible {
-  outline: 2px solid var(--blue);
-  outline-offset: 2px;
+  min-width: 32px;
+  text-align: right;
 }

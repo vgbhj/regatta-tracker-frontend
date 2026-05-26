@@ -68,7 +68,7 @@ export function useLoadRaceFromFile() {
           dispatch(trackUpsertOne(track))
         }
 
-        dispatch(preparePlaybackTracks())
+        dispatch(preparePlaybackTracks(rId))
         setStatus('success')
       } catch (e) {
         setError(e instanceof Error ? e.message : String(e))

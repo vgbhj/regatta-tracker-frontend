@@ -32,10 +32,10 @@ interface RawPoint {
   timeMs: number;
 }
 
-function parseTrackPoints(trk: Element): RawPoint[] {
+function parseSegmentPoints(trkseg: Element): RawPoint[] {
   const points: RawPoint[] = [];
 
-  for (const trkpt of trk.querySelectorAll('trkpt')) {
+  for (const trkpt of trkseg.querySelectorAll('trkpt')) {
     const latAttr = trkpt.getAttribute('lat');
     const lonAttr = trkpt.getAttribute('lon');
     if (latAttr == null || lonAttr == null) continue;
@@ -99,15 +99,22 @@ export function parseGpx(gpxText: string): GpxParseResult {
   let maxTime = -Infinity;
 
   for (const trk of trkElements) {
-    const name = trk.querySelector('name')?.textContent ?? 'Яхта';
-    const raw = parseTrackPoints(trk);
+    const baseName = trk.querySelector('name')?.textContent ?? 'Яхта';
+    const segments = trk.querySelectorAll('trkseg');
 
-    for (const pt of raw) {
-      if (pt.timeMs < minTime) minTime = pt.timeMs;
-      if (pt.timeMs > maxTime) maxTime = pt.timeMs;
+    for (let s = 0; s < segments.length; s++) {
+      const raw = parseSegmentPoints(segments[s]);
+      if (raw.length === 0) continue;
+
+      const name = segments.length > 1 ? `${baseName} #${s + 1}` : baseName;
+
+      for (const pt of raw) {
+        if (pt.timeMs < minTime) minTime = pt.timeMs;
+        if (pt.timeMs > maxTime) maxTime = pt.timeMs;
+      }
+
+      rawTracks.push({ name, raw });
     }
-
-    rawTracks.push({ name, raw });
   }
 
   const raceStartMs = Number.isFinite(minTime) ? minTime : 0;

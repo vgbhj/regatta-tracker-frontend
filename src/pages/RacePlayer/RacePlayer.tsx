@@ -2,7 +2,12 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { selectRaceById } from '@/entities/race';
-import { usePlaybackClock, preparePlaybackTracks } from '@/features/playback';
+import {
+  usePlaybackClock,
+  preparePlaybackTracks,
+  stop,
+  clearPrecomputedTracks,
+} from '@/features/playback';
 import { useLoadRaceFromServer } from '@/features/race-loader';
 import { selectView, ViewSwitcher } from '@/features/view-switcher';
 import { ru } from '@/shared/i18n/ru';
@@ -27,11 +32,19 @@ export function RacePlayer() {
   const raceInStore = useAppSelector((state) =>
     id ? selectRaceById(state, id as RaceId) : undefined,
   );
+  const [preparing, setPreparing] = useState(false);
   const [bottomTab, setBottomTab] = useState<BottomTab>('timeline');
   const t = ru.racePlayer;
 
   const needsServerFetch = !!id && id !== 'local' && !raceInStore;
   const { loadRace, status: serverStatus } = useLoadRaceFromServer();
+
+  useEffect(() => {
+    return () => {
+      dispatch(stop());
+      dispatch(clearPrecomputedTracks());
+    };
+  }, [id, dispatch]);
 
   useEffect(() => {
     if (needsServerFetch) {
@@ -40,9 +53,13 @@ export function RacePlayer() {
   }, [needsServerFetch, id, loadRace]);
 
   useEffect(() => {
-    if (raceInStore) {
-      dispatch(preparePlaybackTracks());
-    }
+    if (!raceInStore) return;
+    setPreparing(true);
+    const timer = setTimeout(() => {
+      dispatch(preparePlaybackTracks(raceInStore.id));
+      setPreparing(false);
+    }, 0);
+    return () => clearTimeout(timer);
   }, [raceInStore, dispatch]);
 
   if (needsServerFetch && serverStatus === 'loading') {
@@ -51,6 +68,15 @@ export function RacePlayer() {
 
   if (needsServerFetch && serverStatus === 'error') {
     return <div className={styles.loading}>{t.raceNotFound}</div>;
+  }
+
+  if (preparing) {
+    return (
+      <div className={styles.loading}>
+        <div className={styles.spinner} />
+        <span>{t.preparingPlayback}</span>
+      </div>
+    );
   }
 
   return (
@@ -65,8 +91,8 @@ export function RacePlayer() {
       </div>
 
       <section className={styles.viewport}>
-        {(view === '2d' || view === 'split') && <MapView />}
-        {(view === '3d' || view === 'split') && <Scene3DView />}
+        {view === '2d' && <MapView />}
+        {view === '3d' && <Scene3DView />}
       </section>
 
       <footer className={styles.bottom}>

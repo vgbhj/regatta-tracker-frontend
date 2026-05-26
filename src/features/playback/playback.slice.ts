@@ -4,7 +4,7 @@ import type { PayloadAction } from '@reduxjs/toolkit';
 import type { RootState } from '@/app/store';
 
 export type PlaybackStatus = 'idle' | 'playing' | 'paused';
-export type PlaybackSpeed = 1 | 2 | 5 | 10 | 30;
+export type PlaybackSpeed = number;
 
 interface PlaybackState {
   status: PlaybackStatus;
