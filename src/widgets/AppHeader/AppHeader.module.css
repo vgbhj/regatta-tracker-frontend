@@ -1,73 +1,126 @@
 .header {
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 0 16px;
-  height: 48px;
+  justify-content: space-between;
+  padding: 0 20px;
+  height: 52px;
   border-bottom: 1px solid var(--border);
-  background: var(--bg);
+  background: var(--bg-0);
   flex-shrink: 0;
 }
 
-.title {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--text-h);
-  margin: 0;
-  white-space: nowrap;
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: transparent;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  padding: 0;
+  font-family: inherit;
+  text-decoration: none;
+}
+
+.logoIcon {
+  width: 28px;
+  height: 28px;
+  background: linear-gradient(135deg, var(--blue), var(--cyan));
+  border-radius: 7px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+  flex-shrink: 0;
+}
+
+.logoText {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+  color: var(--text-0);
+}
+
+.logoAccent {
+  color: var(--cyan);
 }
 
 .nav {
   display: flex;
+  align-items: center;
   gap: 4px;
 }
 
 .navLink {
-  padding: 4px 10px;
-  font-size: 14px;
-  color: var(--text);
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-2);
   text-decoration: none;
-  border-radius: 4px;
-  transition: color 0.15s, background 0.15s;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  transition: color 0.15s, background 0.15s, border-color 0.15s;
 }
 
 .navLink:hover {
-  color: var(--text-h);
-  background: var(--accent-bg);
+  color: var(--text-0);
 }
 
 .navLinkActive {
-  color: var(--accent);
-  background: var(--accent-bg);
+  color: var(--text-0);
+  background: var(--bg-2);
+  border-color: var(--border);
 }
 
-.spacer {
-  flex: 1;
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .uploadBtn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 4px 12px;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  background: none;
-  color: var(--text-h);
-  font: inherit;
-  font-size: 13px;
+  padding: 6px 14px;
+  background: var(--blue);
+  border: 1px solid var(--blue);
+  border-radius: 8px;
+  color: #fff;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
   cursor: pointer;
-  transition: border-color 0.15s, background 0.15s;
+  transition: opacity 0.15s;
 }
 
 .uploadBtn:hover {
-  border-color: var(--accent-border);
-  background: var(--accent-bg);
+  opacity: 0.9;
 }
 
 .uploadBtn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.iconBtn {
+  width: 28px;
+  height: 28px;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+
+.iconBtn:hover {
+  border-color: var(--border-strong);
 }
 
 .fileInput {

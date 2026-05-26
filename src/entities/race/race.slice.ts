@@ -1,5 +1,6 @@
 import { createEntityAdapter, createSlice } from '@reduxjs/toolkit';
 
+import type { RootState } from '@/app/store';
 import type { Race, RaceId } from '@/shared/types';
 
 const raceAdapter = createEntityAdapter<Race, RaceId>({
@@ -19,3 +20,5 @@ const raceSlice = createSlice({
 export const { raceUpsertOne, raceSetAll, raceRemoveAll } = raceSlice.actions;
 export const raceReducer = raceSlice.reducer;
 export const raceSelectors = raceAdapter.getSelectors();
+export const { selectAll: selectAllRaces, selectById: selectRaceById } =
+  raceAdapter.getSelectors((state: RootState) => state.race);

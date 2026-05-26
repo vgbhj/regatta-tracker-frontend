@@ -1,18 +1,45 @@
 .page {
-  padding: 24px;
-  max-width: 720px;
-  margin: 0 auto;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.header {
+  padding: 32px 40px 20px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.headerRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
 }
 
 .heading {
-  font-size: 24px;
-  margin: 0 0 20px;
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
 }
 
-.list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+.subtitle {
+  font-size: 13px;
+  color: var(--text-2);
+  margin-top: 4px;
+}
+
+.grid {
+  flex: 1;
+  overflow: auto;
+  padding: 24px 40px 40px;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
   list-style: none;
   margin: 0;
   padding: 0;
@@ -20,39 +47,57 @@
 
 .card {
   display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 12px 16px;
+  flex-direction: column;
+  background: var(--bg-2);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 12px;
+  overflow: hidden;
   text-decoration: none;
   color: inherit;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  transition: border-color 0.15s, transform 0.15s;
 }
 
 .card:hover {
-  border-color: var(--accent-border);
-  box-shadow: var(--shadow);
+  border-color: var(--border-strong);
+  transform: translateY(-2px);
 }
 
-.name {
-  flex: 1;
-  font-weight: 500;
-  color: var(--text-h);
+.cardBody {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.raceName {
   font-size: 15px;
+  font-weight: 600;
+  color: var(--text-0);
 }
 
-.meta {
-  font-size: 13px;
-  color: var(--text);
-  white-space: nowrap;
+.metaRow {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.metaItem {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--text-2);
+  font-size: 11px;
+  font-family: var(--mono);
 }
 
 .message {
-  color: var(--text);
-  font-size: 15px;
+  padding: 40px;
+  text-align: center;
+  color: var(--text-3);
+  font-size: 13px;
 }
 
 .error {
-  color: #cf222e;
+  color: var(--red);
 }

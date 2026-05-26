@@ -1,7 +1,6 @@
 .map {
   width: 100%;
   flex: 1;
-  min-height: 300px;
-  border-radius: 8px;
+  min-height: 0;
   overflow: hidden;
 }
