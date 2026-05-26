@@ -7,7 +7,7 @@ import type { SceneBounds } from './SceneBounds'
 const TILE_SIZE = 256
 const MAX_TILES = 64
 const SUBDOMAINS = ['a', 'b', 'c']
-const GRID = 128
+const GRID = 256
 
 type Heightmap = Float32Array<ArrayBufferLike>
 
@@ -41,7 +41,21 @@ function findZoom(swLat: number, swLon: number, neLat: number, neLon: number): n
 }
 
 function isWaterPixel(r: number, g: number, b: number): boolean {
-  return b > 170 && b > r + 15 && g > 140
+  return b > 180 && b > r + 30 && g > 150 && b >= g - 10
+}
+
+function sampleBilinear(map: Heightmap, w: number, h: number, fx: number, fy: number): number {
+  const x0 = Math.max(0, Math.min(Math.floor(fx), w - 1))
+  const y0 = Math.max(0, Math.min(Math.floor(fy), h - 1))
+  const x1 = Math.min(x0 + 1, w - 1)
+  const y1 = Math.min(y0 + 1, h - 1)
+  const dx = fx - x0
+  const dy = fy - y0
+  const h00 = map[y0 * w + x0]
+  const h10 = map[y0 * w + x1]
+  const h01 = map[y1 * w + x0]
+  const h11 = map[y1 * w + x1]
+  return h00 * (1 - dx) * (1 - dy) + h10 * dx * (1 - dy) + h01 * (1 - dx) * dy + h11 * dx * dy
 }
 
 function blurHeightmap(src: Heightmap, w: number, h: number, radius: number): Heightmap {
@@ -141,9 +155,9 @@ function buildHeightmap(canvas: HTMLCanvasElement, landHeight: number): Heightma
     raw[i] = cleaned[i] * landHeight
   }
 
-  // Многопроходное размытие для плавного ската берега к воде
   let blurred: Heightmap = raw
-  blurred = blurHeightmap(blurred, GRID, GRID, 3)
+  blurred = blurHeightmap(blurred, GRID, GRID, 4)
+  blurred = blurHeightmap(blurred, GRID, GRID, 4)
   blurred = blurHeightmap(blurred, GRID, GRID, 3)
   blurred = blurHeightmap(blurred, GRID, GRID, 2)
 
@@ -175,20 +189,21 @@ function makeLandTexture(
     for (let px = 0; px < canvas.width; px++) {
       const i = (py * canvas.width + px) * 4
 
-      const gx = Math.min(Math.floor((px / canvas.width) * GRID), GRID - 1)
-      const gy = Math.min(Math.floor((py / canvas.height) * GRID), GRID - 1)
-      const h = heightmap[gy * GRID + gx]
+      const fx = (px / canvas.width) * (GRID - 1)
+      const fy = (py / canvas.height) * (GRID - 1)
+      const h = sampleBilinear(heightmap, GRID, GRID, fx, fy)
 
       if (h < threshold) {
         pixels[i + 3] = 0
       } else {
+        const fade = Math.min(1, (h - threshold) / (landHeight * 0.2))
         const r = pixels[i]
         const g = pixels[i + 1]
         const b = pixels[i + 2]
         pixels[i] = Math.min(255, Math.floor(r * 0.7 + 40))
         pixels[i + 1] = Math.min(255, Math.floor(g * 0.8 + 30))
         pixels[i + 2] = Math.min(255, Math.floor(b * 0.5 + 20))
-        pixels[i + 3] = 255
+        pixels[i + 3] = Math.floor(255 * fade)
       }
     }
   }
@@ -320,7 +335,7 @@ export function MapTexturePlane({ projection, bounds }: MapTexturePlaneProps) {
       <meshStandardMaterial
         map={data.texture}
         transparent
-        alphaTest={0.5}
+        alphaTest={0.1}
         roughness={0.85}
         metalness={0}
         side={THREE.DoubleSide}
