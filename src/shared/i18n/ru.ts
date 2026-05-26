@@ -1,4 +1,9 @@
 export const ru = {
+  appHeader: {
+    title: 'RegattaTracker',
+    navRaces: 'Гонки',
+    uploadGpx: 'Загрузить GPX',
+  },
   raceLoader: {
     title: 'Загрузка гонки',
     tabServer: 'С сервера',
@@ -12,6 +17,16 @@ export const ru = {
     noRaces: 'Нет доступных гонок',
     serverUnavailable: 'Сервер недоступен',
   },
+  raceList: {
+    title: 'Список гонок',
+    date: 'Дата',
+    duration: 'Длительность',
+    yachts: 'Яхт',
+    noRaces: 'Нет доступных гонок',
+    loading: 'Загрузка…',
+    error: 'Не удалось загрузить список гонок',
+    open: 'Открыть',
+  },
   viewSwitcher: {
     '2d': 'Карта',
     '3d': '3D',
@@ -22,5 +37,14 @@ export const ru = {
     pause: 'Пауза',
     restart: 'Сначала',
     speed: 'Скорость',
+  },
+  racePlayer: {
+    tabTimeline: 'Таймлайн',
+    tabMetrics: 'Метрики',
+    loadingRace: 'Загрузка гонки…',
+    raceNotFound: 'Гонка не найдена',
+  },
+  metricsPanel: {
+    placeholder: 'Панель метрик — в разработке',
   },
 } as const;
