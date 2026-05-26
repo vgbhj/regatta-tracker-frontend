@@ -53,7 +53,13 @@
   min-height: 0;
 }
 
-.viewport > * {
+.viewportMain {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+}
+
+.viewportMain > * {
   flex: 1;
   min-width: 0;
 }

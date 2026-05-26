@@ -13,6 +13,7 @@ import { selectView, ViewSwitcher } from '@/features/view-switcher';
 import { ru } from '@/shared/i18n/ru';
 import { useAppDispatch, useAppSelector } from '@/shared/lib/redux-hooks';
 import type { RaceId } from '@/shared/types';
+import { AnalyticsPanel } from '@/widgets/AnalyticsPanel';
 import { MapView } from '@/widgets/MapView';
 import { MetricsPanel } from '@/widgets/MetricsPanel';
 import { Scene3DView } from '@/widgets/Scene3DView';
@@ -91,8 +92,11 @@ export function RacePlayer() {
       </div>
 
       <section className={styles.viewport}>
-        {view === '2d' && <MapView />}
-        {view === '3d' && <Scene3DView />}
+        <div className={styles.viewportMain}>
+          {view === '2d' && <MapView />}
+          {view === '3d' && <Scene3DView />}
+        </div>
+        <AnalyticsPanel />
       </section>
 
       <footer className={styles.bottom}>

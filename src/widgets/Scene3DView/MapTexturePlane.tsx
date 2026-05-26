@@ -215,7 +215,7 @@ function makeLandTexture(
   const imgData = srcCtx.getImageData(0, 0, canvas.width, canvas.height)
   const pixels = imgData.data
 
-  const threshold = landHeight * 0.25
+  const threshold = landHeight * 0.38
 
   for (let py = 0; py < canvas.height; py++) {
     for (let px = 0; px < canvas.width; px++) {
@@ -228,7 +228,7 @@ function makeLandTexture(
       if (h < threshold) {
         pixels[i + 3] = 0
       } else {
-        const fade = Math.min(1, (h - threshold) / (landHeight * 0.15))
+        const fade = Math.min(1, (h - threshold) / (landHeight * 0.07))
         const r = pixels[i]
         const g = pixels[i + 1]
         const b = pixels[i + 2]
@@ -315,19 +315,18 @@ export function MapTexturePlane({ projection, bounds }: MapTexturePlaneProps) {
 
       const geo = new THREE.PlaneGeometry(planeW, planeD, GRID - 1, GRID - 1)
       const pos = geo.attributes.position.array as Float32Array
-      // Водные вершины утапливаются ниже поверхности воды,
-      // чтобы mesh плавно уходил «в воду» и не висел в воздухе.
+      // Резкий обрыв: суша на полной высоте, затем вертикальный
+      // сброс вниз под воду в узкой переходной зоне (cliff).
       const sinkDepth = 3.0
-      const coastLow = landHeight * 0.15
-      const coastHigh = landHeight * 0.7
+      const cliffLow = landHeight * 0.35
+      const cliffHigh = landHeight * 0.45
       for (let i = 0; i < GRID * GRID; i++) {
         const h = heightmap[i]
-        if (h < coastLow) {
+        if (h < cliffLow) {
           pos[i * 3 + 2] = -sinkDepth
-        } else if (h < coastHigh) {
-          const t = (h - coastLow) / (coastHigh - coastLow)
-          const smoothT = t * t * (3 - 2 * t)
-          pos[i * 3 + 2] = -sinkDepth * (1 - smoothT) + h * smoothT
+        } else if (h < cliffHigh) {
+          const t = (h - cliffLow) / (cliffHigh - cliffLow)
+          pos[i * 3 + 2] = -sinkDepth + (h + sinkDepth) * t
         } else {
           pos[i * 3 + 2] = h
         }
@@ -376,12 +375,11 @@ export function MapTexturePlane({ projection, bounds }: MapTexturePlaneProps) {
   if (!data) return null
 
   return (
-    <mesh rotation-x={-Math.PI / 2} position={[data.cx, 0.05, data.cz]} renderOrder={0}>
+    <mesh rotation-x={-Math.PI / 2} position={[data.cx, 0.05, data.cz]}>
       <primitive object={data.geometry} attach="geometry" />
       <meshStandardMaterial
         map={data.texture}
-        transparent
-        alphaTest={0.3}
+        alphaTest={0.4}
         depthWrite
         roughness={0.85}
         metalness={0}

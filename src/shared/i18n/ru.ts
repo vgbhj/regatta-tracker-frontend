@@ -47,4 +47,18 @@ export const ru = {
   metricsPanel: {
     placeholder: 'Панель метрик — в разработке',
   },
+  analyticsPanel: {
+    speedOverTime: 'Скорость',
+    speedUnit: 'УЗ',
+    leaderboard: 'Таблица лидеров',
+    boats: 'яхт',
+    colRank: '#',
+    colBoat: 'ЯХТА',
+    colSpeed: 'СКОР',
+    colCog: 'КУРС',
+    colDist: 'ДИСТ',
+    distance: 'ДИСТАНЦИЯ',
+    avgWind: 'ВЕТЕР (СР)',
+    boatsCount: 'ЯХТЫ',
+  },
 } as const;
