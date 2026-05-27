@@ -6,11 +6,19 @@ import type { Vector3Tuple } from 'three';
 
 import { markSelectors } from '@/entities/mark';
 import { yachtSelectors } from '@/entities/yacht';
+import {
+  selectAnalyticsByYacht,
+  selectSelectedYachtId,
+  selectSelectedManeuverId,
+  selectManeuver,
+} from '@/features/analytics';
 import { selectAllPrecomputedTracks } from '@/features/playback';
 import { LocalProjection } from '@/shared/geo';
-import { useAppSelector } from '@/shared/lib/redux-hooks';
+import { findIndexAtTime } from '@/shared/lib/binarySearchTrack';
+import { useAppDispatch, useAppSelector } from '@/shared/lib/redux-hooks';
 import type { RootState } from '@/app/store';
 
+import { ManeuverMark3D } from './ManeuverMark3D';
 import { MapTexturePlane } from './MapTexturePlane';
 import { RaceMark3D } from './RaceMark3D';
 import { computeSceneBounds } from './SceneBounds';
@@ -27,9 +35,13 @@ interface LocalPoint {
 }
 
 export function Scene3DView() {
+  const dispatch = useAppDispatch();
   const precomputed = useAppSelector(selectAllPrecomputedTracks);
   const yachts = useAppSelector((state) => yachtSelectors.selectAll(state.yacht));
   const marks = useAppSelector((state) => markSelectors.selectAll(state.mark));
+  const analyticsByYacht = useAppSelector(selectAnalyticsByYacht);
+  const selectedYachtId = useAppSelector(selectSelectedYachtId);
+  const selectedManeuverId = useAppSelector(selectSelectedManeuverId);
   const store = useStore<RootState>();
 
   const projection = useMemo(() => {
@@ -63,6 +75,26 @@ export function Scene3DView() {
       return { id: m.id, x: local.x, z: -local.y, type: m.type };
     });
   }, [marks, projection]);
+
+  const localManeuvers = useMemo(() => {
+    if (!projection || !selectedYachtId) return [];
+    const analytics = analyticsByYacht[selectedYachtId];
+    const trackPts = precomputed[selectedYachtId];
+    if (!analytics || !trackPts || trackPts.length === 0) return [];
+
+    return analytics.maneuvers.map((m) => {
+      const idx = findIndexAtTime(trackPts, m.tMs);
+      const pt = trackPts[idx];
+      const local = projection.toLocal(pt);
+      return {
+        id: m.id,
+        x: local.x,
+        z: -local.y,
+        type: m.type,
+        tMs: pt.tMs,
+      };
+    });
+  }, [projection, selectedYachtId, analyticsByYacht, precomputed]);
 
   const bounds = useMemo(
     () => computeSceneBounds(localTracks, localMarks),
@@ -128,6 +160,20 @@ export function Scene3DView() {
             z={m.z}
             type={m.type}
             scale={objectScale}
+          />
+        ))}
+
+        {localManeuvers.map((m) => (
+          <ManeuverMark3D
+            key={m.id}
+            x={m.x}
+            z={m.z}
+            type={m.type}
+            scale={objectScale}
+            tMs={m.tMs}
+            getCurrentTime={getCurrentTime}
+            selected={m.id === selectedManeuverId}
+            onClick={() => dispatch(selectManeuver(m.id))}
           />
         ))}
 

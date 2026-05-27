@@ -28,7 +28,7 @@ export const ru = {
     open: 'Открыть',
   },
   viewSwitcher: {
-    '2d': 'Карта',
+    '2d': '2D',
     '3d': '3D',
   },
   timeline: {

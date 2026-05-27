@@ -341,7 +341,8 @@ export function AnalyticsPanel() {
             <div className={styles.sectionHeader}>
               <span className={styles.sectionTitle}>{t.maneuverList}</span>
               <span className={styles.sectionBadge}>
-                {selectedAnalytics.maneuvers.length}
+                {selectedAnalytics.maneuvers.filter((m) => currentTime >= m.tMs).length}
+                /{selectedAnalytics.maneuvers.length}
               </span>
             </div>
             <table className={styles.table}>
@@ -355,30 +356,32 @@ export function AnalyticsPanel() {
                 </tr>
               </thead>
               <tbody>
-                {selectedAnalytics.maneuvers.map((m) => (
-                  <tr
-                    key={m.id}
-                    className={`${styles.row} ${m.id === selectedManeuverId ? styles.rowSelected : ''}`}
-                    onClick={() => dispatch(selectManeuver(m.id))}
-                  >
-                    <td className={styles.rank}>{m.id}</td>
-                    <td>{m.type === 'tack' ? t.tack : t.gybe}</td>
-                    <td className={styles.numCell}>{formatManeuverTime(m.tMs)}</td>
-                    <td className={styles.numCell}>
-                      <span
-                        className={styles.scoreInline}
-                        style={{ color: m.score >= 70 ? '#2a9d8f' : '#e63946' }}
-                      >
-                        {m.score.toFixed(0)}
-                      </span>
-                    </td>
-                    <td className={styles.errorCell}>
-                      {m.errorCodes.length > 0
-                        ? m.errorCodes.join(', ')
-                        : t.noErrors}
-                    </td>
-                  </tr>
-                ))}
+                {selectedAnalytics.maneuvers
+                  .filter((m) => currentTime >= m.tMs)
+                  .map((m) => (
+                    <tr
+                      key={m.id}
+                      className={`${styles.row} ${m.id === selectedManeuverId ? styles.rowSelected : ''}`}
+                      onClick={() => dispatch(selectManeuver(m.id))}
+                    >
+                      <td className={styles.rank}>{m.id}</td>
+                      <td>{m.type === 'tack' ? t.tack : t.gybe}</td>
+                      <td className={styles.numCell}>{formatManeuverTime(m.tMs)}</td>
+                      <td className={styles.numCell}>
+                        <span
+                          className={styles.scoreInline}
+                          style={{ color: m.score >= 70 ? '#2a9d8f' : '#e63946' }}
+                        >
+                          {m.score.toFixed(0)}
+                        </span>
+                      </td>
+                      <td className={styles.errorCell}>
+                        {m.errorCodes.length > 0
+                          ? m.errorCodes.join(', ')
+                          : t.noErrors}
+                      </td>
+                    </tr>
+                  ))}
               </tbody>
             </table>
           </div>
