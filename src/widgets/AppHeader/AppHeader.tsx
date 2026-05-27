@@ -58,6 +58,14 @@ export function AppHeader() {
         >
           {t.navRaces}
         </NavLink>
+        <NavLink
+          to="/reports"
+          className={({ isActive }) =>
+            `${styles.navLink} ${isActive ? styles.navLinkActive : ''}`
+          }
+        >
+          {ru.raceReports.navReports}
+        </NavLink>
       </nav>
 
       <div className={styles.actions}>

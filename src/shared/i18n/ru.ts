@@ -79,4 +79,14 @@ export const ru = {
     timeLost: 'ПОТЕРИ',
     selectBoatHint: 'Выберите яхту в таблице',
   },
+  raceReports: {
+    title: 'Отчёты участников',
+    subtitle: 'Сначала откройте гонку, затем сформируйте отчёты',
+    navReports: 'Отчёты',
+    generate: 'Сформировать',
+    generating: 'Генерация…',
+    download: 'Скачать PDF',
+    errorGenerate: 'Ошибка генерации отчёта',
+    noRace: 'Откройте гонку, чтобы сформировать отчёты',
+  },
 } as const;

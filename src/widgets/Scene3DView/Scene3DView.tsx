@@ -25,6 +25,7 @@ import { computeSceneBounds } from './SceneBounds';
 import styles from './Scene3DView.module.css';
 import { TrackTrail } from './TrackTrail';
 import { WaterPlane } from './WaterPlane';
+import { WindArrow3D } from './WindArrow3D';
 import { YachtModel } from './YachtModel';
 
 interface LocalPoint {
@@ -95,6 +96,13 @@ export function Scene3DView() {
       };
     });
   }, [projection, selectedYachtId, analyticsByYacht, precomputed]);
+
+  const wind = useMemo(() => {
+    for (const data of Object.values(analyticsByYacht)) {
+      if (data.wind.length > 0) return data.wind;
+    }
+    return [];
+  }, [analyticsByYacht]);
 
   const bounds = useMemo(
     () => computeSceneBounds(localTracks, localMarks),
@@ -176,6 +184,16 @@ export function Scene3DView() {
             onClick={() => dispatch(selectManeuver(m.id))}
           />
         ))}
+
+        {bounds && wind.length > 0 && (
+          <WindArrow3D
+            wind={wind}
+            getCurrentTime={getCurrentTime}
+            scale={objectScale}
+            x={bounds.centerX + bounds.sizeX * 0.45}
+            z={bounds.centerZ - bounds.sizeZ * 0.45}
+          />
+        )}
 
         {Object.entries(localTracks).map(([yachtId, track]) => {
           const yacht = yachtMap.get(yachtId);

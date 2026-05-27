@@ -43,8 +43,17 @@ export interface RaceSummary {
   gybeErrors: string[];
 }
 
+export interface WindPoint {
+  lat: number;
+  lon: number;
+  tMs: number;
+  directionDeg: number;
+  speedMs: number;
+}
+
 export interface AnalyticsData {
   summary: RaceSummary;
   maneuvers: ManeuverAnalytics[];
   tacking: TackingPeriod[];
+  wind: WindPoint[];
 }

@@ -26,12 +26,13 @@ export const fetchYachtAnalytics = createAsyncThunk(
     }
 
     const json = await response.json();
-    return { yachtId, data: parseAnalyticsResponse(json) };
+    return { yachtId, gpxText, data: parseAnalyticsResponse(json) };
   },
 );
 
 interface AnalyticsState {
   byYachtId: Record<string, AnalyticsData>;
+  gpxByYachtId: Record<string, string>;
   selectedYachtId: string | null;
   selectedManeuverId: number | null;
   pending: number;
@@ -40,6 +41,7 @@ interface AnalyticsState {
 
 const initialState: AnalyticsState = {
   byYachtId: {},
+  gpxByYachtId: {},
   selectedYachtId: null,
   selectedManeuverId: null,
   pending: 0,
@@ -67,8 +69,9 @@ const analyticsSlice = createSlice({
       })
       .addCase(fetchYachtAnalytics.fulfilled, (state, action) => {
         state.pending -= 1;
-        const { yachtId, data } = action.payload;
+        const { yachtId, gpxText, data } = action.payload;
         state.byYachtId[yachtId] = data;
+        state.gpxByYachtId[yachtId] = gpxText;
         if (!state.selectedYachtId) {
           state.selectedYachtId = yachtId;
         }
@@ -93,3 +96,5 @@ export const selectAnalyticsError = (state: { analytics: AnalyticsState }) =>
   state.analytics.error;
 export const selectSelectedManeuverId = (state: { analytics: AnalyticsState }) =>
   state.analytics.selectedManeuverId;
+export const selectGpxByYachtId = (state: { analytics: AnalyticsState }) =>
+  state.analytics.gpxByYachtId;

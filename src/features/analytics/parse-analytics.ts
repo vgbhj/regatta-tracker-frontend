@@ -1,6 +1,6 @@
 import { parseCsv } from '@/shared/lib/csv-parser';
 
-import type { AnalyticsData, ManeuverAnalytics, RaceSummary, TackingPeriod } from './types';
+import type { AnalyticsData, ManeuverAnalytics, RaceSummary, TackingPeriod, WindPoint } from './types';
 
 interface AnalyticsResponse {
   track: string;
@@ -20,12 +20,42 @@ function parseSemicolonList(s: string): string[] {
   return s.split(';').filter(Boolean);
 }
 
-function parseTrackPositions(csv: string): TrackRow[] {
-  return parseCsv(csv).map((row) => ({
+interface ParsedTrack {
+  rows: TrackRow[];
+  wind: WindPoint[];
+}
+
+const WIND_SAMPLE_COUNT = 12;
+
+function parseTrackWithWind(csv: string): ParsedTrack {
+  const parsed = parseCsv(csv);
+  const rows: TrackRow[] = parsed.map((row) => ({
     lat: Number(row.latitude),
     lon: Number(row.longitude),
     timestampMs: Number(row.timestamps_millis),
   }));
+
+  if (rows.length === 0) return { rows, wind: [] };
+
+  const raceStartMs = rows[0].timestampMs;
+  const step = Math.max(1, Math.floor(parsed.length / WIND_SAMPLE_COUNT));
+  const wind: WindPoint[] = [];
+
+  for (let i = 0; i < parsed.length; i += step) {
+    const row = parsed[i];
+    const dir = Number(row.wind_azimuth);
+    const spd = Number(row.wind_speed);
+    if (!Number.isFinite(dir) || !Number.isFinite(spd)) continue;
+    wind.push({
+      lat: Number(row.latitude),
+      lon: Number(row.longitude),
+      tMs: Number(row.timestamps_millis) - raceStartMs,
+      directionDeg: dir,
+      speedMs: spd,
+    });
+  }
+
+  return { rows, wind };
 }
 
 function parseManeuvers(
@@ -96,10 +126,11 @@ function parseSummary(csv: string): RaceSummary {
 }
 
 export function parseAnalyticsResponse(response: AnalyticsResponse): AnalyticsData {
-  const trackRows = parseTrackPositions(response.track);
+  const { rows: trackRows, wind } = parseTrackWithWind(response.track);
   return {
     summary: parseSummary(response.summary),
     maneuvers: parseManeuvers(response.maneuvers, trackRows),
     tacking: parseTacking(response.tacking),
+    wind,
   };
 }

@@ -10,6 +10,7 @@ import styles from './MapView.module.css';
 import { useManeuversLayer } from './useManeuversLayer';
 import { useMarksLayer } from './useMarksLayer';
 import { useTracksLayer } from './useTracksLayer';
+import { useWindLayer } from './useWindLayer';
 import { useYachtsLayer } from './useYachtsLayer';
 
 const BOUNDS_SAMPLE_STRIDE = 50;
@@ -61,6 +62,7 @@ export function MapView() {
   useManeuversLayer(map);
   useMarksLayer(map);
   useTracksLayer(map);
+  useWindLayer(map);
   useYachtsLayer(map);
 
   return <div ref={containerRef} className={styles.map} />;
