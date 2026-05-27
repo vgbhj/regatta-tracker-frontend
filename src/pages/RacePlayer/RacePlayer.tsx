@@ -5,6 +5,7 @@ import { selectRaceById } from '@/entities/race';
 import { clearAnalytics, fetchYachtAnalytics, selectAnalyticsByYacht } from '@/features/analytics';
 import {
   usePlaybackClock,
+  usePlaybackKeyboard,
   preparePlaybackTracks,
   stop,
   clearPrecomputedTracks,
@@ -23,6 +24,7 @@ import styles from './RacePlayer.module.css';
 
 export function RacePlayer() {
   usePlaybackClock();
+  usePlaybackKeyboard();
 
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();

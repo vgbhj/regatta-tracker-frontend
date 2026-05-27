@@ -16,6 +16,7 @@ export {
 } from './playback.slice';
 export type { PlaybackSpeed, PlaybackStatus } from './playback.slice';
 export { usePlaybackClock } from './usePlaybackClock';
+export { usePlaybackKeyboard } from './usePlaybackKeyboard';
 export {
   precomputedTracksReducer,
   selectAllPrecomputedTracks,
