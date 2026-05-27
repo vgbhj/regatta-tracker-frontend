@@ -193,6 +193,18 @@ function buildHeightmap(canvas: HTMLCanvasElement, landHeight: number): Heightma
     blurred[i] = t * t * (3 - 2 * t) * landHeight
   }
 
+  // Плавное затухание к краям сетки: суша уходит под воду на границе тайлов
+  const edgeFade = GRID * 0.15
+  for (let y = 0; y < GRID; y++) {
+    for (let x = 0; x < GRID; x++) {
+      const dMin = Math.min(x, GRID - 1 - x, y, GRID - 1 - y)
+      if (dMin < edgeFade) {
+        const s = dMin / edgeFade
+        blurred[y * GRID + x] *= s * s * (3 - 2 * s)
+      }
+    }
+  }
+
   return blurred
 }
 
@@ -215,7 +227,7 @@ function makeLandTexture(
   const imgData = srcCtx.getImageData(0, 0, canvas.width, canvas.height)
   const pixels = imgData.data
 
-  const threshold = landHeight * 0.38
+  const threshold = landHeight * 0.35
 
   for (let py = 0; py < canvas.height; py++) {
     for (let px = 0; px < canvas.width; px++) {
@@ -301,7 +313,7 @@ export function MapTexturePlane({ projection, bounds }: MapTexturePlaneProps) {
     const planeD = gridSW.y - gridNE.y
     const cx = (gridSW.x + gridNE.x) / 2
     const cz = -(gridSW.y + gridNE.y) / 2
-    const landHeight = bounds.diagonal * 0.02
+    const landHeight = bounds.diagonal * 0.025
 
     let loaded = 0
     const total = tilesW * tilesH
@@ -315,21 +327,29 @@ export function MapTexturePlane({ projection, bounds }: MapTexturePlaneProps) {
 
       const geo = new THREE.PlaneGeometry(planeW, planeD, GRID - 1, GRID - 1)
       const pos = geo.attributes.position.array as Float32Array
-      // Резкий обрыв: суша на полной высоте, затем вертикальный
-      // сброс вниз под воду в узкой переходной зоне (cliff).
-      const sinkDepth = 3.0
-      const cliffLow = landHeight * 0.35
-      const cliffHigh = landHeight * 0.45
+      const waterLevel = landHeight * 0.3
+      const WATER_SURFACE = -0.15
+      const landMinY = landHeight * 0.05
+      const edgeZone = 6
+      const edgeSink = WATER_SURFACE - 1.5
+
       for (let i = 0; i < GRID * GRID; i++) {
-        const h = heightmap[i]
-        if (h < cliffLow) {
-          pos[i * 3 + 2] = -sinkDepth
-        } else if (h < cliffHigh) {
-          const t = (h - cliffLow) / (cliffHigh - cliffLow)
-          pos[i * 3 + 2] = -sinkDepth + (h + sinkDepth) * t
-        } else {
-          pos[i * 3 + 2] = h
+        const gx = i % GRID
+        const gy = Math.floor(i / GRID)
+        let h = heightmap[i] - waterLevel
+
+        const edgeDist = Math.min(gx, GRID - 1 - gx, gy, GRID - 1 - gy)
+
+        if (edgeDist < edgeZone) {
+          // Загибание краёв: smoothstep от edgeSink до h
+          const t = edgeDist / edgeZone
+          h = edgeSink + (h - edgeSink) * t * t * (3 - 2 * t)
+        } else if (heightmap[i] > landHeight * 0.5 && h < landMinY) {
+          // Суша не должна уходить под воду
+          h = landMinY
         }
+
+        pos[i * 3 + 2] = h
       }
       geo.attributes.position.needsUpdate = true
       geo.computeVertexNormals()
@@ -375,7 +395,7 @@ export function MapTexturePlane({ projection, bounds }: MapTexturePlaneProps) {
   if (!data) return null
 
   return (
-    <mesh rotation-x={-Math.PI / 2} position={[data.cx, 0.05, data.cz]}>
+    <mesh rotation-x={-Math.PI / 2} position={[data.cx, 0, data.cz]}>
       <primitive object={data.geometry} attach="geometry" />
       <meshStandardMaterial
         map={data.texture}

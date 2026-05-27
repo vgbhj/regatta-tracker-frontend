@@ -153,7 +153,7 @@ export function WaterPlane({ centerX, centerZ, sizeX, sizeZ }: WaterPlaneProps) 
   });
 
   return (
-    <mesh rotation-x={-Math.PI / 2} position={[centerX, -0.5, centerZ]} renderOrder={1}>
+    <mesh rotation-x={-Math.PI / 2} position={[centerX, -0.15, centerZ]} renderOrder={1}>
       <planeGeometry args={[sizeX, sizeZ, SEGMENTS, SEGMENTS]} />
       <shaderMaterial
         ref={materialRef}
