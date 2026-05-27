@@ -29,6 +29,24 @@
   padding: 24px 40px 40px;
 }
 
+.select {
+  width: 100%;
+  max-width: 400px;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-family: inherit;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg-1);
+  color: var(--text-0);
+  margin-bottom: 20px;
+}
+
+.select:focus {
+  outline: none;
+  border-color: var(--cyan);
+}
+
 .empty {
   padding: 40px;
   text-align: center;

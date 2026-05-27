@@ -1,7 +1,5 @@
 .panel {
   padding: 16px;
-  max-height: 200px;
-  overflow-y: auto;
 }
 
 .title {
@@ -77,6 +75,12 @@
 .btnReady:hover {
   background: var(--cyan);
   color: var(--bg-0);
+}
+
+.noData {
+  font-size: 10px;
+  color: var(--text-3);
+  font-style: italic;
 }
 
 .error {

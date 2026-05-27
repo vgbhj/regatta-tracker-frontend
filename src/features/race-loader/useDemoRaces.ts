@@ -8,6 +8,7 @@ import { useAppDispatch } from '@/shared/lib/redux-hooks';
 import { raceUpsertOne } from '@/entities/race';
 import { yachtUpsertOne } from '@/entities/yacht';
 import { trackUpsertOne } from '@/entities/track';
+import { setGpxText } from '@/features/analytics';
 
 const YACHT_COLORS = [
   '#F59E0B', '#0EA5E9', '#10B981', '#EC4899',
@@ -44,11 +45,17 @@ export const DEMO_RACES: DemoRace[] = [
   { urls: ['/data/2025-10-12_10-46.gpx'], name: 'Гонка 2025-10-12', id: 'demo-2025-10-12' },
 ];
 
-async function fetchAndParse(url: string): Promise<GpxParseResult | null> {
+interface FetchedGpx {
+  text: string;
+  parsed: GpxParseResult;
+}
+
+async function fetchGpx(url: string): Promise<FetchedGpx | null> {
   try {
     const resp = await fetch(url);
     if (!resp.ok) return null;
-    return parseGpx(await resp.text());
+    const text = await resp.text();
+    return { text, parsed: parseGpx(text) };
   } catch {
     return null;
   }
@@ -65,17 +72,17 @@ export function useDemoRaces() {
     async function loadAll() {
       for (const demo of DEMO_RACES) {
         try {
-          const results = await Promise.all(demo.urls.map(fetchAndParse));
-          const parsed = results.filter((r): r is GpxParseResult => r !== null);
-          if (parsed.length === 0) continue;
+          const results = await Promise.all(demo.urls.map(fetchGpx));
+          const fetched = results.filter((r): r is FetchedGpx => r !== null);
+          if (fetched.length === 0) continue;
 
           const rId = raceId(demo.id);
 
           let globalMinTime = Infinity;
           let globalMaxTime = -Infinity;
-          for (const p of parsed) {
-            if (p.raceStartMs < globalMinTime) globalMinTime = p.raceStartMs;
-            const end = p.raceStartMs + p.raceDurationMs;
+          for (const { parsed } of fetched) {
+            if (parsed.raceStartMs < globalMinTime) globalMinTime = parsed.raceStartMs;
+            const end = parsed.raceStartMs + parsed.raceDurationMs;
             if (end > globalMaxTime) globalMaxTime = end;
           }
 
@@ -83,10 +90,10 @@ export function useDemoRaces() {
           const allTracks: Track[] = [];
           let yachtIdx = 0;
 
-          for (const p of parsed) {
-            const timeOffset = p.raceStartMs - globalMinTime;
+          for (const { text, parsed } of fetched) {
+            const timeOffset = parsed.raceStartMs - globalMinTime;
 
-            for (const gpxTrack of p.tracks) {
+            for (const gpxTrack of parsed.tracks) {
               const yId = yachtId(`${demo.id}-yacht-${yachtIdx}`);
               allYachts.push({
                 id: yId,
@@ -103,6 +110,7 @@ export function useDemoRaces() {
                   tMs: pt.tMs + timeOffset,
                 })),
               });
+              dispatch(setGpxText({ yachtId: yId, gpxText: text }));
               yachtIdx++;
             }
           }

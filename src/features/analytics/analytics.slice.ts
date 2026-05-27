@@ -53,6 +53,12 @@ const analyticsSlice = createSlice({
   initialState,
   reducers: {
     clearAnalytics: () => initialState,
+    setGpxText(
+      state,
+      action: PayloadAction<{ yachtId: string; gpxText: string }>,
+    ) {
+      state.gpxByYachtId[action.payload.yachtId] = action.payload.gpxText;
+    },
     selectYacht(state, action: PayloadAction<string>) {
       state.selectedYachtId = action.payload;
       state.selectedManeuverId = null;
@@ -83,7 +89,7 @@ const analyticsSlice = createSlice({
   },
 });
 
-export const { clearAnalytics, selectYacht, selectManeuver } = analyticsSlice.actions;
+export const { clearAnalytics, setGpxText, selectYacht, selectManeuver } = analyticsSlice.actions;
 export const analyticsReducer = analyticsSlice.reducer;
 
 export const selectAnalyticsByYacht = (state: { analytics: AnalyticsState }) =>

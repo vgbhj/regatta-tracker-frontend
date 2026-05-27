@@ -2,6 +2,7 @@ export {
   analyticsReducer,
   fetchYachtAnalytics,
   clearAnalytics,
+  setGpxText,
   selectYacht,
   selectManeuver,
   selectAnalyticsByYacht,

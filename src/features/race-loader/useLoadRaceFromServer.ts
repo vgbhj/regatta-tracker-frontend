@@ -10,6 +10,7 @@ import { yachtUpsertOne } from '@/entities/yacht'
 import { trackUpsertOne } from '@/entities/track'
 import { markSetAll } from '@/entities/mark'
 import { preparePlaybackTracks } from '@/features/playback'
+import { setGpxText } from '@/features/analytics'
 
 import type { LoadStatus } from './useLoadRaceFromFile'
 
@@ -63,6 +64,7 @@ export function useLoadRaceFromServer() {
             points: gpxTrack.points,
           }
           dispatch(trackUpsertOne(track))
+          dispatch(setGpxText({ yachtId: yId, gpxText }))
         }
 
         dispatch(preparePlaybackTracks(race.id))

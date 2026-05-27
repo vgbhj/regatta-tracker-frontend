@@ -1,9 +1,11 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
+import { selectRaceById } from '@/entities/race';
 import { yachtSelectors } from '@/entities/yacht';
 import { selectGpxByYachtId } from '@/features/analytics';
 import { ru } from '@/shared/i18n/ru';
 import { useAppSelector } from '@/shared/lib/redux-hooks';
+import type { RaceId } from '@/shared/types';
 
 import styles from './ReportsPanel.module.css';
 
@@ -16,13 +18,32 @@ interface ReportState {
   error: string | null;
 }
 
-export function ReportsPanel() {
+interface ReportsPanelProps {
+  raceId: string;
+}
+
+export function ReportsPanel({ raceId }: ReportsPanelProps) {
   const t = ru.raceReports;
-  const yachts = useAppSelector((state) => yachtSelectors.selectAll(state.yacht));
+  const race = useAppSelector((state) =>
+    selectRaceById(state, raceId as RaceId),
+  );
+  const allYachts = useAppSelector((state) =>
+    yachtSelectors.selectAll(state.yacht),
+  );
   const gpxByYacht = useAppSelector(selectGpxByYachtId);
+
+  const yachts = useMemo(() => {
+    if (!race) return [];
+    const ids = new Set<string>(race.yachts);
+    return allYachts.filter((y) => ids.has(y.id));
+  }, [allYachts, race]);
 
   const [reports, setReports] = useState<Record<string, ReportState>>({});
   const blobUrlsRef = useRef<string[]>([]);
+
+  useEffect(() => {
+    setReports({});
+  }, [raceId]);
 
   useEffect(() => {
     return () => {
@@ -74,26 +95,25 @@ export function ReportsPanel() {
     [gpxByYacht],
   );
 
-  const relevantYachts = yachts.filter((y) => gpxByYacht[y.id]);
-
-  if (relevantYachts.length === 0) {
+  if (yachts.length === 0) {
     return (
       <div className={styles.panel}>
-        <div className={styles.empty}>{t.noRace}</div>
+        <div className={styles.empty}>{t.noYachts}</div>
       </div>
     );
   }
 
   return (
     <div className={styles.panel}>
-      <div className={styles.title}>{t.title}</div>
+      <div className={styles.title}>{race?.name}</div>
       <div className={styles.list}>
-        {relevantYachts.map((yacht) => {
+        {yachts.map((yacht) => {
           const state = reports[yacht.id] ?? {
             status: 'idle' as const,
             blobUrl: null,
             error: null,
           };
+          const hasGpx = !!gpxByYacht[yacht.id];
 
           return (
             <div key={yacht.id} className={styles.row}>
@@ -103,7 +123,11 @@ export function ReportsPanel() {
               />
               <span className={styles.yachtName}>{yacht.name}</span>
 
-              {state.status === 'idle' && (
+              {!hasGpx && (
+                <span className={styles.noData}>{t.noGpxData}</span>
+              )}
+
+              {hasGpx && state.status === 'idle' && (
                 <button
                   className={styles.btn}
                   onClick={() => generate(yacht.id)}
@@ -112,13 +136,13 @@ export function ReportsPanel() {
                 </button>
               )}
 
-              {state.status === 'loading' && (
+              {hasGpx && state.status === 'loading' && (
                 <button className={styles.btn} disabled>
                   {t.generating}
                 </button>
               )}
 
-              {state.status === 'ready' && state.blobUrl && (
+              {hasGpx && state.status === 'ready' && state.blobUrl && (
                 <a
                   className={`${styles.btn} ${styles.btnReady}`}
                   href={state.blobUrl}
@@ -128,7 +152,7 @@ export function ReportsPanel() {
                 </a>
               )}
 
-              {state.status === 'error' && (
+              {hasGpx && state.status === 'error' && (
                 <>
                   <span className={styles.error}>
                     {t.errorGenerate}: {state.error}
