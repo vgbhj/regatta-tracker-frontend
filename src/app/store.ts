@@ -4,6 +4,7 @@ import { raceReducer } from '@/entities/race';
 import { yachtReducer } from '@/entities/yacht';
 import { trackReducer } from '@/entities/track';
 import { markReducer } from '@/entities/mark';
+import { analyticsReducer } from '@/features/analytics';
 import { playbackReducer, precomputedTracksReducer } from '@/features/playback';
 import { viewSwitcherReducer } from '@/features/view-switcher';
 import { apiSlice } from '@/shared/api/api-slice';
@@ -14,6 +15,7 @@ export const store = configureStore({
     yacht: yachtReducer,
     track: trackReducer,
     mark: markReducer,
+    analytics: analyticsReducer,
     playback: playbackReducer,
     precomputedTracks: precomputedTracksReducer,
     viewSwitcher: viewSwitcherReducer,

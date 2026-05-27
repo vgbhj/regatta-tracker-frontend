@@ -2,26 +2,24 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { selectRaceById } from '@/entities/race';
+import { clearAnalytics, fetchYachtAnalytics, selectAnalyticsByYacht } from '@/features/analytics';
 import {
   usePlaybackClock,
   preparePlaybackTracks,
   stop,
   clearPrecomputedTracks,
 } from '@/features/playback';
-import { useLoadRaceFromServer } from '@/features/race-loader';
+import { DEMO_RACES, useLoadRaceFromServer } from '@/features/race-loader';
 import { selectView, ViewSwitcher } from '@/features/view-switcher';
 import { ru } from '@/shared/i18n/ru';
 import { useAppDispatch, useAppSelector } from '@/shared/lib/redux-hooks';
 import type { RaceId } from '@/shared/types';
 import { AnalyticsPanel } from '@/widgets/AnalyticsPanel';
 import { MapView } from '@/widgets/MapView';
-import { MetricsPanel } from '@/widgets/MetricsPanel';
 import { Scene3DView } from '@/widgets/Scene3DView';
 import { Timeline } from '@/widgets/Timeline';
 
 import styles from './RacePlayer.module.css';
-
-type BottomTab = 'timeline' | 'metrics';
 
 export function RacePlayer() {
   usePlaybackClock();
@@ -34,7 +32,7 @@ export function RacePlayer() {
     id ? selectRaceById(state, id as RaceId) : undefined,
   );
   const [preparing, setPreparing] = useState(false);
-  const [bottomTab, setBottomTab] = useState<BottomTab>('timeline');
+  const analyticsByYacht = useAppSelector(selectAnalyticsByYacht);
   const t = ru.racePlayer;
 
   const needsServerFetch = !!id && id !== 'local' && !raceInStore;
@@ -44,6 +42,7 @@ export function RacePlayer() {
     return () => {
       dispatch(stop());
       dispatch(clearPrecomputedTracks());
+      dispatch(clearAnalytics());
     };
   }, [id, dispatch]);
 
@@ -62,6 +61,23 @@ export function RacePlayer() {
     }, 0);
     return () => clearTimeout(timer);
   }, [raceInStore, dispatch]);
+
+  useEffect(() => {
+    if (!id || !raceInStore) return;
+    const demo = DEMO_RACES.find((d) => d.id === id);
+    if (!demo) return;
+    const yachtIds = raceInStore.yachts;
+    demo.urls.forEach((url, i) => {
+      const yId = yachtIds[i];
+      if (!yId || analyticsByYacht[yId]) return;
+      fetch(url)
+        .then((r) => r.text())
+        .then((text) =>
+          dispatch(fetchYachtAnalytics({ yachtId: yId, gpxText: text })),
+        )
+        .catch(() => {});
+    });
+  }, [id, raceInStore, analyticsByYacht, dispatch]);
 
   if (needsServerFetch && serverStatus === 'loading') {
     return <div className={styles.loading}>{t.loadingRace}</div>;
@@ -100,26 +116,7 @@ export function RacePlayer() {
       </section>
 
       <footer className={styles.bottom}>
-        <div className={styles.tabs}>
-          <button
-            className={`${styles.tab} ${bottomTab === 'timeline' ? styles.tabActive : ''}`}
-            onClick={() => setBottomTab('timeline')}
-            aria-pressed={bottomTab === 'timeline'}
-          >
-            {t.tabTimeline}
-          </button>
-          <button
-            className={`${styles.tab} ${bottomTab === 'metrics' ? styles.tabActive : ''}`}
-            onClick={() => setBottomTab('metrics')}
-            aria-pressed={bottomTab === 'metrics'}
-          >
-            {t.tabMetrics}
-          </button>
-        </div>
-        <div className={styles.tabContent}>
-          {bottomTab === 'timeline' && <Timeline />}
-          {bottomTab === 'metrics' && <MetricsPanel />}
-        </div>
+        <Timeline />
       </footer>
     </div>
   );

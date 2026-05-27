@@ -8,6 +8,7 @@ import { raceUpsertOne } from '@/entities/race'
 import { yachtUpsertOne } from '@/entities/yacht'
 import { trackUpsertOne } from '@/entities/track'
 import { markSetAll } from '@/entities/mark'
+import { fetchYachtAnalytics } from '@/features/analytics'
 import { preparePlaybackTracks } from '@/features/playback'
 
 const YACHT_COLORS = [
@@ -69,6 +70,9 @@ export function useLoadRaceFromFile() {
         }
 
         dispatch(preparePlaybackTracks(rId))
+        for (const y of yachts) {
+          dispatch(fetchYachtAnalytics({ yachtId: y.id, gpxText: text }))
+        }
         setStatus('success')
       } catch (e) {
         setError(e instanceof Error ? e.message : String(e))

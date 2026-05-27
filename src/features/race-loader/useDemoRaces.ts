@@ -14,13 +14,13 @@ const YACHT_COLORS = [
   '#A855F7', '#EF4444', '#2563EB', '#e63946',
 ];
 
-interface DemoRace {
+export interface DemoRace {
   urls: string[];
   name: string;
   id: string;
 }
 
-const DEMO_RACES: DemoRace[] = [
+export const DEMO_RACES: DemoRace[] = [
   {
     urls: [
       '/data/hamburg-elbe-alex.gpx',

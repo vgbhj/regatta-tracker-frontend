@@ -90,10 +90,16 @@
 
 .row {
   transition: background 0.12s;
+  cursor: pointer;
 }
 
 .row:hover {
   background: var(--bg-2);
+}
+
+.rowSelected {
+  background: var(--bg-2);
+  box-shadow: inset 3px 0 0 var(--orange);
 }
 
 .row td {
@@ -206,4 +212,82 @@
   font-weight: 500;
   color: var(--text-3);
   margin-left: 2px;
+}
+
+/* ─── Analytics loading/error ─── */
+
+.analyticsLoading,
+.analyticsError {
+  padding: 12px 16px;
+  font-size: 12px;
+  color: var(--text-3);
+  text-align: center;
+  border-top: 1px solid var(--border);
+}
+
+.analyticsError {
+  color: #e63946;
+}
+
+/* ─── Scores ─── */
+
+.scores {
+  border-top: 1px solid var(--border);
+  padding: 14px 16px 0;
+}
+
+.scoreGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.scoreItem {
+  text-align: center;
+  padding: 8px 4px;
+  background: var(--bg-2);
+  border-radius: 6px;
+}
+
+.scoreLabel {
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-3);
+  margin-bottom: 4px;
+}
+
+.scoreValue {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-0);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ─── Maneuver list ─── */
+
+.maneuverList {
+  padding: 14px 0 10px;
+  border-top: 1px solid var(--border);
+}
+
+.maneuverList .sectionHeader {
+  padding: 0 16px;
+  margin-bottom: 8px;
+}
+
+.scoreInline {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.errorCell {
+  font-size: 10px;
+  color: var(--text-3);
+  max-width: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }

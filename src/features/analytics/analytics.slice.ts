@@ -1,0 +1,87 @@
+import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import type { PayloadAction } from '@reduxjs/toolkit';
+
+import { parseAnalyticsResponse } from './parse-analytics';
+import type { AnalyticsData } from './types';
+
+const ANALYTICS_URL =
+  import.meta.env.VITE_ANALYTICS_URL ?? 'http://localhost:8080';
+
+interface FetchAnalyticsArg {
+  yachtId: string;
+  gpxText: string;
+}
+
+export const fetchYachtAnalytics = createAsyncThunk(
+  'analytics/fetchYacht',
+  async ({ yachtId, gpxText }: FetchAnalyticsArg) => {
+    const response = await fetch(`${ANALYTICS_URL}/analyze`, {
+      method: 'POST',
+      body: gpxText,
+      headers: { 'Content-Type': 'application/octet-stream' },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Analytics service error: ${response.status}`);
+    }
+
+    const json = await response.json();
+    return { yachtId, data: parseAnalyticsResponse(json) };
+  },
+);
+
+interface AnalyticsState {
+  byYachtId: Record<string, AnalyticsData>;
+  selectedYachtId: string | null;
+  pending: number;
+  error: string | null;
+}
+
+const initialState: AnalyticsState = {
+  byYachtId: {},
+  selectedYachtId: null,
+  pending: 0,
+  error: null,
+};
+
+const analyticsSlice = createSlice({
+  name: 'analytics',
+  initialState,
+  reducers: {
+    clearAnalytics: () => initialState,
+    selectYacht(state, action: PayloadAction<string>) {
+      state.selectedYachtId = action.payload;
+    },
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchYachtAnalytics.pending, (state) => {
+        state.pending += 1;
+        state.error = null;
+      })
+      .addCase(fetchYachtAnalytics.fulfilled, (state, action) => {
+        state.pending -= 1;
+        const { yachtId, data } = action.payload;
+        state.byYachtId[yachtId] = data;
+        if (!state.selectedYachtId) {
+          state.selectedYachtId = yachtId;
+        }
+      })
+      .addCase(fetchYachtAnalytics.rejected, (state, action) => {
+        state.pending -= 1;
+        state.error = action.error.message ?? 'Unknown error';
+      });
+  },
+});
+
+export const { clearAnalytics, selectYacht } = analyticsSlice.actions;
+export const analyticsReducer = analyticsSlice.reducer;
+
+export const selectAnalyticsByYacht = (state: { analytics: AnalyticsState }) =>
+  state.analytics.byYachtId;
+export const selectSelectedYachtId = (state: { analytics: AnalyticsState }) =>
+  state.analytics.selectedYachtId;
+export const selectAnalyticsPending = (state: { analytics: AnalyticsState }) =>
+  state.analytics.pending > 0;
+export const selectAnalyticsError = (state: { analytics: AnalyticsState }) =>
+  state.analytics.error;
