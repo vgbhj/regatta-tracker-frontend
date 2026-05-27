@@ -9,28 +9,58 @@ interface AnalyticsResponse {
   summary: string;
 }
 
+interface TrackRow {
+  lat: number;
+  lon: number;
+  timestampMs: number;
+}
+
 function parseSemicolonList(s: string): string[] {
   if (!s) return [];
   return s.split(';').filter(Boolean);
 }
 
-function parseManeuvers(csv: string): ManeuverAnalytics[] {
+function parseTrackPositions(csv: string): TrackRow[] {
   return parseCsv(csv).map((row) => ({
-    id: Number(row.maneuver_id),
-    duration: Number(row.maneuver_duration),
-    type: row.maneuver_type as 'tack' | 'gybe',
-    side: row.side,
-    entrySpeed: Number(row.entry_speed),
-    exitSpeed: Number(row.exit_speed),
-    minSpeed: Number(row.min_speed),
-    recoveryTimeSec: Number(row.recovery_time_sec),
-    success: row.success_flag === 'true',
-    errorCodes: parseSemicolonList(row.error_codes),
-    vmgLoss: Number(row.vmg_loss),
-    speedLoss: Number(row.speed_loss),
-    score: Number(row.score),
-    timeLoss: Number(row.time_loss),
+    lat: Number(row.latitude),
+    lon: Number(row.longitude),
+    timestampMs: Number(row.timestamps_millis),
   }));
+}
+
+function parseManeuvers(
+  csv: string,
+  trackRows: TrackRow[],
+): ManeuverAnalytics[] {
+  const raceStartMs = trackRows.length > 0 ? trackRows[0].timestampMs : 0;
+
+  return parseCsv(csv).map((row) => {
+    const id = Number(row.maneuver_id);
+    const start = Number(row.maneuver_start);
+    const end = Number(row.maneuver_end);
+    const centerIdx = Math.round((start + end) / 2);
+    const trackPoint = trackRows[centerIdx] ?? trackRows[0];
+
+    return {
+      id,
+      duration: Number(row.maneuver_duration),
+      type: row.maneuver_type as 'tack' | 'gybe',
+      side: row.side,
+      entrySpeed: Number(row.entry_speed),
+      exitSpeed: Number(row.exit_speed),
+      minSpeed: Number(row.min_speed),
+      recoveryTimeSec: Number(row.recovery_time_sec),
+      success: row.success_flag === 'true',
+      errorCodes: parseSemicolonList(row.error_codes),
+      vmgLoss: Number(row.vmg_loss),
+      speedLoss: Number(row.speed_loss),
+      score: Number(row.score),
+      timeLoss: Number(row.time_loss),
+      lat: trackPoint.lat,
+      lon: trackPoint.lon,
+      tMs: trackPoint.timestampMs - raceStartMs,
+    };
+  });
 }
 
 function parseTacking(csv: string): TackingPeriod[] {
@@ -66,9 +96,10 @@ function parseSummary(csv: string): RaceSummary {
 }
 
 export function parseAnalyticsResponse(response: AnalyticsResponse): AnalyticsData {
+  const trackRows = parseTrackPositions(response.track);
   return {
     summary: parseSummary(response.summary),
-    maneuvers: parseManeuvers(response.maneuvers),
+    maneuvers: parseManeuvers(response.maneuvers, trackRows),
     tacking: parseTacking(response.tacking),
   };
 }

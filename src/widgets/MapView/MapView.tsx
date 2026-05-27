@@ -7,6 +7,7 @@ import { selectAllPrecomputedTracks } from '@/features/playback';
 import { useAppSelector } from '@/shared/lib/redux-hooks';
 
 import styles from './MapView.module.css';
+import { useManeuversLayer } from './useManeuversLayer';
 import { useMarksLayer } from './useMarksLayer';
 import { useTracksLayer } from './useTracksLayer';
 import { useYachtsLayer } from './useYachtsLayer';
@@ -57,6 +58,7 @@ export function MapView() {
     }
   }, [map, marks, precomputed]);
 
+  useManeuversLayer(map);
   useMarksLayer(map);
   useTracksLayer(map);
   useYachtsLayer(map);

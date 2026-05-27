@@ -13,6 +13,9 @@ export interface ManeuverAnalytics {
   speedLoss: number;
   score: number;
   timeLoss: number;
+  lat: number;
+  lon: number;
+  tMs: number;
 }
 
 export interface TackingPeriod {

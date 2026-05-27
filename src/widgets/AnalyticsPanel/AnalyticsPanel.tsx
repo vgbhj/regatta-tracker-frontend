@@ -6,7 +6,9 @@ import {
   selectAnalyticsByYacht,
   selectSelectedYachtId,
   selectAnalyticsPending,
+  selectSelectedManeuverId,
   selectYacht,
+  selectManeuver,
 } from '@/features/analytics';
 import {
   selectAllPrecomputedTracks,
@@ -22,6 +24,13 @@ import type { TrackPoint } from '@/shared/types';
 import styles from './AnalyticsPanel.module.css';
 
 const MS_TO_KNOTS = 1.94384;
+
+function formatManeuverTime(ms: number): string {
+  const totalSec = Math.round(ms / 1000);
+  const mm = String(Math.floor(totalSec / 60)).padStart(2, '0');
+  const ss = String(totalSec % 60).padStart(2, '0');
+  return `${mm}:${ss}`;
+}
 const M_TO_NM = 1 / 1852;
 const CHART_SAMPLES = 20;
 
@@ -95,6 +104,7 @@ export function AnalyticsPanel() {
   const analyticsByYacht = useAppSelector(selectAnalyticsByYacht);
   const selectedYachtId = useAppSelector(selectSelectedYachtId);
   const analyticsPending = useAppSelector(selectAnalyticsPending);
+  const selectedManeuverId = useAppSelector(selectSelectedManeuverId);
 
   const selectedAnalytics = selectedYachtId
     ? analyticsByYacht[selectedYachtId] ?? null
@@ -339,15 +349,21 @@ export function AnalyticsPanel() {
                 <tr>
                   <th>#</th>
                   <th>{t.colType}</th>
+                  <th>{t.colTime}</th>
                   <th style={{ textAlign: 'right' }}>{t.colScore}</th>
                   <th>{t.colErrors}</th>
                 </tr>
               </thead>
               <tbody>
                 {selectedAnalytics.maneuvers.map((m) => (
-                  <tr key={m.id} className={styles.row}>
+                  <tr
+                    key={m.id}
+                    className={`${styles.row} ${m.id === selectedManeuverId ? styles.rowSelected : ''}`}
+                    onClick={() => dispatch(selectManeuver(m.id))}
+                  >
                     <td className={styles.rank}>{m.id}</td>
                     <td>{m.type === 'tack' ? t.tack : t.gybe}</td>
+                    <td className={styles.numCell}>{formatManeuverTime(m.tMs)}</td>
                     <td className={styles.numCell}>
                       <span
                         className={styles.scoreInline}

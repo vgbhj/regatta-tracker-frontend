@@ -73,6 +73,7 @@ export const ru = {
     gybe: 'фордевинд',
     analyticsLoading: 'Анализ…',
     analyticsError: 'Ошибка аналитики',
+    colTime: 'ВРЕМЯ',
     noErrors: '—',
     vmgAvg: 'VMG СР.',
     timeLost: 'ПОТЕРИ',

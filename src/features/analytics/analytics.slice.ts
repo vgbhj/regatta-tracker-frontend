@@ -33,6 +33,7 @@ export const fetchYachtAnalytics = createAsyncThunk(
 interface AnalyticsState {
   byYachtId: Record<string, AnalyticsData>;
   selectedYachtId: string | null;
+  selectedManeuverId: number | null;
   pending: number;
   error: string | null;
 }
@@ -40,6 +41,7 @@ interface AnalyticsState {
 const initialState: AnalyticsState = {
   byYachtId: {},
   selectedYachtId: null,
+  selectedManeuverId: null,
   pending: 0,
   error: null,
 };
@@ -51,6 +53,10 @@ const analyticsSlice = createSlice({
     clearAnalytics: () => initialState,
     selectYacht(state, action: PayloadAction<string>) {
       state.selectedYachtId = action.payload;
+      state.selectedManeuverId = null;
+    },
+    selectManeuver(state, action: PayloadAction<number | null>) {
+      state.selectedManeuverId = action.payload;
     },
   },
   extraReducers: (builder) => {
@@ -74,7 +80,7 @@ const analyticsSlice = createSlice({
   },
 });
 
-export const { clearAnalytics, selectYacht } = analyticsSlice.actions;
+export const { clearAnalytics, selectYacht, selectManeuver } = analyticsSlice.actions;
 export const analyticsReducer = analyticsSlice.reducer;
 
 export const selectAnalyticsByYacht = (state: { analytics: AnalyticsState }) =>
@@ -85,3 +91,5 @@ export const selectAnalyticsPending = (state: { analytics: AnalyticsState }) =>
   state.analytics.pending > 0;
 export const selectAnalyticsError = (state: { analytics: AnalyticsState }) =>
   state.analytics.error;
+export const selectSelectedManeuverId = (state: { analytics: AnalyticsState }) =>
+  state.analytics.selectedManeuverId;
