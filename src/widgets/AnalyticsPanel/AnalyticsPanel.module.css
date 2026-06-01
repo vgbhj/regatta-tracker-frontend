@@ -291,3 +291,48 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* ─── Mobile ─── */
+
+@media (max-width: 768px) {
+  .panel {
+    width: 100%;
+    border-left: none;
+    border-top: 1px solid var(--border);
+    overflow-y: visible;
+  }
+
+  .chartSection {
+    padding: 10px 12px 8px;
+  }
+
+  .leaderboard {
+    padding: 10px 0 8px;
+  }
+
+  .leaderboardHeader {
+    padding: 0 12px;
+  }
+
+  .tableHead th:first-child,
+  .row td:first-child {
+    padding-left: 12px;
+  }
+
+  .tableHead th:last-child,
+  .row td:last-child {
+    padding-right: 12px;
+  }
+
+  .summary {
+    padding: 10px 12px;
+  }
+
+  .scores {
+    padding: 10px 12px 0;
+  }
+
+  .maneuverList .sectionHeader {
+    padding: 0 12px;
+  }
+}

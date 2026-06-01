@@ -126,3 +126,23 @@
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+
+/* ─── Mobile ─── */
+
+@media (max-width: 768px) {
+  .toolbar {
+    padding: 8px 12px;
+    gap: 10px;
+  }
+
+  .viewport {
+    flex-direction: column;
+    overflow-y: auto;
+  }
+
+  .viewportMain {
+    height: 50vh;
+    min-height: 280px;
+    flex-shrink: 0;
+  }
+}
