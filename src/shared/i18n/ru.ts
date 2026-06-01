@@ -92,4 +92,9 @@ export const ru = {
     noYachts: 'В выбранной гонке нет участников',
     noGpxData: 'Нет данных трека',
   },
+  themeSwitcher: {
+    toggle: 'Переключить тему',
+    switchToLight: 'Светлая тема',
+    switchToDark: 'Тёмная тема',
+  },
 } as const;

@@ -2,6 +2,7 @@ import { useRef } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 
 import { useLoadRaceFromFile } from '@/features/race-loader';
+import { ThemeSwitcher } from '@/features/theme-switcher';
 import { ru } from '@/shared/i18n/ru';
 
 import styles from './AppHeader.module.css';
@@ -69,6 +70,7 @@ export function AppHeader() {
       </nav>
 
       <div className={styles.actions}>
+        <ThemeSwitcher />
         <button
           className={styles.uploadBtn}
           onClick={() => fileRef.current?.click()}

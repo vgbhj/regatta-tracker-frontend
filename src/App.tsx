@@ -1,6 +1,7 @@
 import { Route, Routes } from 'react-router-dom';
 
 import { useDemoRaces } from '@/features/race-loader';
+import { useThemeSync } from '@/features/theme-switcher';
 import { RaceList } from '@/pages/RaceList';
 import { RacePlayer } from '@/pages/RacePlayer';
 import { Reports } from '@/pages/Reports';
@@ -8,6 +9,7 @@ import { AppHeader } from '@/widgets/AppHeader';
 
 function App() {
   useDemoRaces();
+  useThemeSync();
 
   return (
     <>

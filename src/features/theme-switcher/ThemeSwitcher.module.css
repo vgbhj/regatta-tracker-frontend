@@ -1,0 +1,18 @@
+.btn {
+  width: 28px;
+  height: 28px;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.btn:hover {
+  border-color: var(--border-strong);
+  color: var(--text-0);
+}

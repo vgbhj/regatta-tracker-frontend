@@ -6,6 +6,7 @@ import { trackReducer } from '@/entities/track';
 import { markReducer } from '@/entities/mark';
 import { analyticsReducer } from '@/features/analytics';
 import { playbackReducer, precomputedTracksReducer } from '@/features/playback';
+import { themeSwitcherReducer } from '@/features/theme-switcher';
 import { viewSwitcherReducer } from '@/features/view-switcher';
 import { apiSlice } from '@/shared/api/api-slice';
 
@@ -18,6 +19,7 @@ export const store = configureStore({
     analytics: analyticsReducer,
     playback: playbackReducer,
     precomputedTracks: precomputedTracksReducer,
+    themeSwitcher: themeSwitcherReducer,
     viewSwitcher: viewSwitcherReducer,
     [apiSlice.reducerPath]: apiSlice.reducer,
   },
