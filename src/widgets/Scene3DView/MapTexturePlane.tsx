@@ -123,9 +123,78 @@ function morphDilate(mask: Float32Array, w: number, h: number, r: number): Float
 }
 
 /**
- * Строит бинарную маску суша/вода (1/0) на сетке GRID×GRID,
- * затем размывает для плавного перехода у береговой линии.
- * Возвращает heightmap где значения плавно спадают от landHeight к 0 у берега.
+ * Chamfer distance transform: для каждой ячейки суши (mask > 0.5)
+ * вычисляет приближённое евклидово расстояние до ближайшей воды.
+ * Два прохода (прямой + обратный) с 8-связностью, O(n).
+ */
+function distanceTransform(mask: Float32Array, w: number, h: number): Float32Array {
+  const INF = w + h
+  const dist = new Float32Array(w * h)
+
+  for (let i = 0; i < w * h; i++) {
+    dist[i] = mask[i] > 0.5 ? INF : 0
+  }
+
+  const D = 1.414
+
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const i = y * w + x
+      if (x > 0) dist[i] = Math.min(dist[i], dist[i - 1] + 1)
+      if (y > 0) dist[i] = Math.min(dist[i], dist[(y - 1) * w + x] + 1)
+      if (x > 0 && y > 0) dist[i] = Math.min(dist[i], dist[(y - 1) * w + x - 1] + D)
+      if (x < w - 1 && y > 0) dist[i] = Math.min(dist[i], dist[(y - 1) * w + x + 1] + D)
+    }
+  }
+
+  for (let y = h - 1; y >= 0; y--) {
+    for (let x = w - 1; x >= 0; x--) {
+      const i = y * w + x
+      if (x < w - 1) dist[i] = Math.min(dist[i], dist[i + 1] + 1)
+      if (y < h - 1) dist[i] = Math.min(dist[i], dist[(y + 1) * w + x] + 1)
+      if (x < w - 1 && y < h - 1) dist[i] = Math.min(dist[i], dist[(y + 1) * w + x + 1] + D)
+      if (x > 0 && y < h - 1) dist[i] = Math.min(dist[i], dist[(y + 1) * w + x - 1] + D)
+    }
+  }
+
+  return dist
+}
+
+function hashN(x: number, y: number): number {
+  const n = Math.sin(x * 127.1 + y * 311.7) * 43758.5453
+  return n - Math.floor(n)
+}
+
+function smoothNoise(x: number, y: number): number {
+  const ix = Math.floor(x)
+  const iy = Math.floor(y)
+  const fx = x - ix
+  const fy = y - iy
+  const sx = fx * fx * (3 - 2 * fx)
+  const sy = fy * fy * (3 - 2 * fy)
+  const a = hashN(ix, iy)
+  const b = hashN(ix + 1, iy)
+  const c = hashN(ix, iy + 1)
+  const d = hashN(ix + 1, iy + 1)
+  return a * (1 - sx) * (1 - sy) + b * sx * (1 - sy) + c * (1 - sx) * sy + d * sx * sy
+}
+
+function fbmNoise2D(x: number, y: number, octaves: number): number {
+  let value = 0
+  let amp = 0.5
+  let freq = 1
+  for (let i = 0; i < octaves; i++) {
+    value += amp * smoothNoise(x * freq, y * freq)
+    amp *= 0.5
+    freq *= 2
+  }
+  return value
+}
+
+/**
+ * Строит heightmap на сетке GRID×GRID: бинарная маска суша/вода → distance
+ * transform (расстояние до ближайшей воды) → smoothstep + fBm-шум для
+ * холмов. Высота плавно поднимается от 0 у береговой линии вглубь суши.
  */
 function buildHeightmap(canvas: HTMLCanvasElement, landHeight: number): Heightmap {
   const ctx = canvas.getContext('2d')!
@@ -173,39 +242,46 @@ function buildHeightmap(canvas: HTMLCanvasElement, landHeight: number): Heightma
   const dilated = morphDilate(opened, GRID, GRID, 2)
   const cleaned = morphErode(dilated, GRID, GRID, 2)
 
+  const dist = distanceTransform(cleaned, GRID, GRID)
+
+  let maxDist = 0
+  for (let i = 0; i < GRID * GRID; i++) {
+    if (dist[i] > maxDist) maxDist = dist[i]
+  }
+  if (maxDist < 1) maxDist = 1
+
   const raw = new Float32Array(GRID * GRID)
+  const noiseFreq = 0.07
+
   for (let i = 0; i < GRID * GRID; i++) {
-    raw[i] = cleaned[i] * landHeight
+    if (dist[i] === 0) continue
+
+    const gx = i % GRID
+    const gy = Math.floor(i / GRID)
+
+    // Нормализуем расстояние, насыщение при 50% от максимума → плато
+    const normDist = Math.min(dist[i] / (maxDist * 0.5), 1)
+    const base = normDist * normDist * (3 - 2 * normDist)
+
+    const n = fbmNoise2D(gx * noiseFreq, gy * noiseFreq, 5)
+    raw[i] = base * landHeight * (0.5 + n * 0.7)
   }
 
-  let blurred: Heightmap = raw
-  blurred = blurHeightmap(blurred, GRID, GRID, 8)
-  blurred = blurHeightmap(blurred, GRID, GRID, 6)
-  blurred = blurHeightmap(blurred, GRID, GRID, 6)
-  blurred = blurHeightmap(blurred, GRID, GRID, 5)
-  blurred = blurHeightmap(blurred, GRID, GRID, 4)
-  blurred = blurHeightmap(blurred, GRID, GRID, 3)
+  let result = blurHeightmap(raw, GRID, GRID, 3)
+  result = blurHeightmap(result, GRID, GRID, 2)
 
-  // Smoothstep: S-кривая для естественного профиля берега —
-  // плоское плато на суше, плавный изгиб вниз к воде.
-  for (let i = 0; i < GRID * GRID; i++) {
-    const t = Math.max(0, Math.min(1, blurred[i] / landHeight))
-    blurred[i] = t * t * (3 - 2 * t) * landHeight
-  }
-
-  // Плавное затухание к краям сетки: суша уходит под воду на границе тайлов
-  const edgeFade = GRID * 0.15
+  const edgeFade = GRID * 0.12
   for (let y = 0; y < GRID; y++) {
     for (let x = 0; x < GRID; x++) {
       const dMin = Math.min(x, GRID - 1 - x, y, GRID - 1 - y)
       if (dMin < edgeFade) {
         const s = dMin / edgeFade
-        blurred[y * GRID + x] *= s * s * (3 - 2 * s)
+        result[y * GRID + x] *= s * s * (3 - 2 * s)
       }
     }
   }
 
-  return blurred
+  return result
 }
 
 /**
@@ -227,7 +303,7 @@ function makeLandTexture(
   const imgData = srcCtx.getImageData(0, 0, canvas.width, canvas.height)
   const pixels = imgData.data
 
-  const threshold = landHeight * 0.35
+  const threshold = landHeight * 0.03
 
   for (let py = 0; py < canvas.height; py++) {
     for (let px = 0; px < canvas.width; px++) {
@@ -240,7 +316,7 @@ function makeLandTexture(
       if (h < threshold) {
         pixels[i + 3] = 0
       } else {
-        const fade = Math.min(1, (h - threshold) / (landHeight * 0.07))
+        const fade = Math.min(1, (h - threshold) / (landHeight * 0.05))
         const r = pixels[i]
         const g = pixels[i + 1]
         const b = pixels[i + 2]
@@ -327,29 +403,13 @@ export function MapTexturePlane({ projection, bounds }: MapTexturePlaneProps) {
 
       const geo = new THREE.PlaneGeometry(planeW, planeD, GRID - 1, GRID - 1)
       const pos = geo.attributes.position.array as Float32Array
-      const waterLevel = landHeight * 0.3
-      const WATER_SURFACE = -0.15
-      const landMinY = landHeight * 0.05
-      const edgeZone = 6
-      const edgeSink = WATER_SURFACE - 1.5
 
+      // Смещаем на 0.05*landHeight вниз — видимый край текстуры
+      // (alphaTest=0.4 при threshold=0.03 + fade=0.02) попадает на Z≈0,
+      // а меш стоит на Y=-0.15 (уровень воды), так что берег не парит.
+      const heightShift = landHeight * 0.05
       for (let i = 0; i < GRID * GRID; i++) {
-        const gx = i % GRID
-        const gy = Math.floor(i / GRID)
-        let h = heightmap[i] - waterLevel
-
-        const edgeDist = Math.min(gx, GRID - 1 - gx, gy, GRID - 1 - gy)
-
-        if (edgeDist < edgeZone) {
-          // Загибание краёв: smoothstep от edgeSink до h
-          const t = edgeDist / edgeZone
-          h = edgeSink + (h - edgeSink) * t * t * (3 - 2 * t)
-        } else if (heightmap[i] > landHeight * 0.5 && h < landMinY) {
-          // Суша не должна уходить под воду
-          h = landMinY
-        }
-
-        pos[i * 3 + 2] = h
+        pos[i * 3 + 2] = heightmap[i] - heightShift
       }
       geo.attributes.position.needsUpdate = true
       geo.computeVertexNormals()
@@ -395,7 +455,7 @@ export function MapTexturePlane({ projection, bounds }: MapTexturePlaneProps) {
   if (!data) return null
 
   return (
-    <mesh rotation-x={-Math.PI / 2} position={[data.cx, 0, data.cz]}>
+    <mesh rotation-x={-Math.PI / 2} position={[data.cx, -0.15, data.cz]}>
       <primitive object={data.geometry} attach="geometry" />
       <meshStandardMaterial
         map={data.texture}
