@@ -138,6 +138,7 @@ export function Scene3DView() {
   return (
     <div className={styles.canvas}>
       <Canvas
+        gl={{ stencil: true }}
         camera={{
           position: cameraPosition,
           fov: 60,

@@ -404,6 +404,12 @@ export function MapTexturePlane({ projection, bounds }: MapTexturePlaneProps) {
         roughness={0.85}
         metalness={0}
         side={THREE.DoubleSide}
+        stencilWrite
+        stencilRef={1}
+        stencilFunc={THREE.AlwaysStencilFunc}
+        stencilFail={THREE.KeepStencilOp}
+        stencilZFail={THREE.KeepStencilOp}
+        stencilZPass={THREE.ReplaceStencilOp}
       />
     </mesh>
   )

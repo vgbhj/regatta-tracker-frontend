@@ -163,6 +163,12 @@ export function WaterPlane({ centerX, centerZ, sizeX, sizeZ }: WaterPlaneProps) 
         transparent
         depthWrite={false}
         side={THREE.DoubleSide}
+        stencilWrite
+        stencilRef={1}
+        stencilFunc={THREE.NotEqualStencilFunc}
+        stencilFail={THREE.KeepStencilOp}
+        stencilZFail={THREE.KeepStencilOp}
+        stencilZPass={THREE.KeepStencilOp}
       />
     </mesh>
   );
